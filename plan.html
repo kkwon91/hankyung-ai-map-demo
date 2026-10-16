@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="집코노미 AI 단지지도 · 기획서">
+<meta property="og:description" content="한경 집코노미 동네뉴스맵 확장 · 단지 AI 페이지 · 중개사 AI Master 독점 상품 · 현장 제보 뉴스 PR — 리치고 데이터로 만든 제안 시안">
+<meta property="og:image" content="https://kkwon91.github.io/hankyung-ai-map-demo/og.png">
+<meta property="og:url" content="https://kkwon91.github.io/hankyung-ai-map-demo/plan.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>집코노미 AI 단지지도 기획</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<script src="data.js"></script>
+<style>
+:root{--hk:#142c67;--hk2:#0d79c7;--soft:#f5f5f7;--ink:#121212;--ink2:#585858;--ink3:#888;--line:#ddd;--bg:#f7f7f7;--gold:#142c67;--red:#b50000;--ok:#0d79c7;--warn:#ca002c}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;letter-spacing:-.2px;color:var(--ink);background:var(--bg);line-height:1.65;font-size:15px}
+.wrap{max-width:980px;margin:0 auto;padding:40px 16px 80px}
+header.cover{background:linear-gradient(135deg,#0b1d42,#163d86);color:#fff;border-radius:18px;padding:40px 44px;margin-bottom:28px}
+header.cover .k{font-size:13px;color:#f3d48b;font-weight:700;letter-spacing:.3px}
+header.cover h1{font-size:32px;margin:8px 0 10px;letter-spacing:-1px;line-height:1.3}
+header.cover p{margin:0;opacity:.88}
+header.cover .meta{margin-top:18px;font-size:13px;opacity:.75}
+header.cover a{color:#fff;background:rgba(255,255,255,.15);padding:8px 14px;border-radius:999px;font-weight:700;font-size:13.5px;text-decoration:none;display:inline-block;margin-top:16px}
+nav.toc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 22px;margin-bottom:28px;columns:2;font-size:14px}
+nav.toc a{color:var(--ink2);text-decoration:none;display:block;padding:2px 0}
+section{background:#fff;border:1px solid var(--line);border-radius:16px;padding:28px 32px;margin-bottom:20px}
+h2{font-size:21px;margin:0 0 14px;letter-spacing:-.4px;display:flex;gap:10px;align-items:baseline}
+h2 small{color:var(--hk2);font-size:14px;font-weight:800}
+h3{font-size:16px;margin:22px 0 8px}
+p{margin:6px 0}
+ul{padding-left:20px;margin:6px 0}
+li{margin:3px 0}
+table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+th{background:var(--bg);text-align:left;font-weight:700;color:var(--ink2);padding:9px 10px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid #eef0f4;vertical-align:top}
+td.r,th.r{text-align:right}
+code{background:#f1f4f9;border-radius:4px;padding:1px 5px;font-size:12.5px;color:#334}
+.lead{font-size:17px;font-weight:700;color:#203154;background:var(--soft);border-radius:12px;padding:16px 18px}
+.callout{border-left:4px solid var(--warn);background:#fff8ef;padding:12px 16px;border-radius:0 10px 10px 0;margin:12px 0;font-size:14px}
+.callout.blue{border-color:var(--hk2);background:var(--soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.box{border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:14px}
+.box b.t{display:block;margin-bottom:4px;font-size:15px}
+.flow{display:flex;align-items:stretch;gap:8px;flex-wrap:wrap;margin:14px 0}
+.flow .st{flex:1;min-width:150px;border-radius:12px;padding:14px;background:var(--bg);font-size:13px}
+.flow .st b{display:block;font-size:14.5px;margin-bottom:4px;color:var(--hk)}
+.flow .ar{align-self:center;color:var(--ink3);font-size:20px}
+.flow .st.money{background:#fbf3e2}
+.flow .st.money b{color:var(--gold)}
+.pill{display:inline-block;font-size:11.5px;font-weight:800;border-radius:999px;padding:1px 8px}
+.pill.ok{background:#e8f8f1;color:var(--ok)}.pill.no{background:#fdecef;color:var(--red)}.pill.q{background:#fff4e5;color:var(--warn)}
+.screens a{display:block;text-decoration:none;color:inherit}
+.screens .box:hover{border-color:var(--hk2)}
+.muted{color:var(--ink3);font-size:13px}
+.sc{display:inline-block;min-width:28px;text-align:center;border-radius:999px;color:#fff;font-weight:800;font-size:12px;padding:1px 6px}
+.s90{background:#12a06b}.s80{background:#6cbf45}.s70{background:#e5b424}.s60{background:#ec7d2c}.sx{background:#a7afbd}
+.gantt{font-size:13px}
+.gantt .row{display:grid;grid-template-columns:170px 1fr;align-items:center;gap:10px;margin:6px 0}
+.gantt .bar{height:22px;border-radius:6px;color:#fff;font-size:11.5px;font-weight:700;display:flex;align-items:center;padding:0 8px;white-space:nowrap}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr}nav.toc{columns:1}section{padding:20px}header.cover{padding:28px 22px}}
+</style>
+</head>
+<body>
+<div class="wrap"><div style="font-size:12px;color:#b50000;margin-bottom:10px">제안용 시안 · 한국경제 공식 서비스 아님 · 외부 공유판(내부 메모 제외)</div>
+
+<header class="cover">
+  <div class="k">한국경제 집코노미 × 리치고 · SI 제안 기획 v0.2</div>
+  <h1>집코노미 AI 단지지도<br>+ 중개사 단지 독점 광고 상품</h1>
+  <p>hankyung.com/realestate 의 '동네뉴스맵'을 리치고 데이터로 단지 시세·분석 지도로 넓히고, 단지마다 중개사 1명만 노출하는 'AI Master' 광고로 수익을 만든다.</p>
+  <div class="meta">작성 2026-10-14 · 데이터 기준: 리치고 운영 DB·단지위키 10/14 조회 · 시안 범위: 서울 송파구 10개 단지</div>
+  <a href="./">화면 시안 6종 열기 →</a>
+</header>
+
+<nav class="toc">
+  <a href="#s1">1. 한 줄 요약</a><a href="#s2">2. 배경 — 받은 시안과 현재 집코노미</a><a href="#s3">3. 목표와 성과 지표</a><a href="#s4">4. 서비스 구조</a>
+  <a href="#s5">5. 화면 구성</a><a href="#s6">6. 데이터 — 리치고에서 무엇을 쓰나</a><a href="#s7">7. H-AI 스코어 산식(안)</a><a href="#s8">8. 광고 상품 설계</a>
+  <a href="#s8b">9. 현장 제보 → 동네 기사 (뉴스 PR)</a><a href="#s9">10. 연동 방식</a><a href="#s10">11. 일정</a><a href="#s11">12. 위험 요소·확인할 것</a><a href="#s12">13. 결정이 필요한 것</a>
+</nav>
+
+<section id="s1"><h2><small>01</small>한 줄 요약</h2>
+  <p class="lead">한경은 트래픽과 기사, 리치고는 단지 데이터와 AI를 내고, 단지 페이지에서 생기는 상담 신청을 그 단지 '독점 중개사'에게 판다.</p>
+  <div class="grid3" style="margin-top:14px">
+    <div class="box"><b class="t">독자에게</b>기사를 읽다가 바로 그 동네·단지의 KB 시세, 실거래, AI 분석을 본다.</div>
+    <div class="box"><b class="t">중개사에게</b>"우리 단지 담당은 나 하나" — 지도·단지 페이지·AI 상담에서 들어오는 상담을 독점한다.</div>
+    <div class="box"><b class="t">한경에게</b>기사 트래픽을 광고 외 반복 매출(중개사 월정액)로 바꾼다. 단지 페이지 수천 개가 검색 유입을 만든다.</div>
+  </div>
+</section>
+
+<section id="s2"><h2><small>02</small>배경 — 받은 시안과 현재 집코노미</h2>
+  <h3>받은 시안 7장의 공통 구조</h3>
+  <div class="flow">
+    <div class="st"><b>통합 지도</b>단지 마커 + H-AI 스코어 + AI Master 아이콘</div><div class="ar">→</div>
+    <div class="st"><b>단지 마이크로사이트</b>스코어·한줄 요약·시세·실거래·브리핑 영상·뉴스</div><div class="ar">→</div>
+    <div class="st"><b>AI 상담 / AI Master 상담</b>하단 고정 2버튼</div><div class="ar">→</div>
+    <div class="st money"><b>중개사 SaaS</b>리드 관리·원클릭 리포트/영상 (B2B 수익원)</div>
+  </div>
+  <p class="muted">시안 속 숫자(스코어 84·94, 23.5억 등)는 모두 가짜. 이번 시안은 같은 구조를 <b>리치고 실데이터</b>로 다시 만들었다.</p>
+  <h3>현재 hankyung.com/realestate (집코노미)</h3>
+  <ul>
+    <li>첫 화면 가운데 큰 지도 = <b>동네뉴스맵</b>(네이버 지도 + 지역별 기사 수 클러스터 + 왼쪽 기사 목록). 시세 정보는 없음.</li>
+    <li>메뉴에 밸류업센터·매물정보·매물관리센터가 이미 있음 → 중개사 접점이 일부 있음(실제 사용 규모는 한경 측 확인 필요).</li>
+    <li>오른쪽은 집코노미 TV(유튜브)와 PICK 기사.</li>
+  </ul>
+  <div class="callout blue"><b>제안 방향:</b> 새 서비스를 따로 세우지 않고 <b>동네뉴스맵 자리에 레이어(뉴스/시세/스코어)를 더하는 방식</b>으로 시작한다. 한경 독자 동선을 바꾸지 않아서 협의가 쉽고, 첫 화면 트래픽을 그대로 받는다.</div>
+</section>
+
+<section id="s3"><h2><small>03</small>목표와 성과 지표</h2>
+  <table>
+    <tr><th>구분</th><th>지표</th><th>1차 목표(오픈 3개월, 가설)</th></tr>
+    <tr><td>독자</td><td>지도 → 단지 페이지 이동률</td><td>지도 방문자의 15% 이상</td></tr>
+    <tr><td>독자</td><td>단지 페이지 검색 유입</td><td>월 방문의 30% 이상이 검색엔진</td></tr>
+    <tr><td>리드</td><td>단지 페이지 → 상담 신청률</td><td>0.5~1%</td></tr>
+    <tr><td>매출</td><td>AI Master 판매 단지 수</td><td>서울 대단지 50곳 이상</td></tr>
+    <tr><td>품질</td><td>중개사 재계약률</td><td>70% 이상(3개월 계약 기준)</td></tr>
+  </table>
+  <p class="muted">목표치는 한경 트래픽 실측을 받은 뒤 다시 잡는다.</p>
+</section>
+
+<section id="s4"><h2><small>04</small>서비스 구조</h2>
+  <div class="flow">
+    <div class="st"><b>① 유입</b>집코노미 기사 · 동네뉴스맵 · 검색엔진(단지명)</div><div class="ar">→</div>
+    <div class="st"><b>② AI 단지지도</b>시세·스코어 마커, 필터, 미니 카드</div><div class="ar">→</div>
+    <div class="st"><b>③ 단지 AI 페이지</b>KB 시세·실거래·입주민 지식·동네 제보·한경 기사</div><div class="ar">→</div>
+    <div class="st"><b>④ AI 상담</b>데이터 답변 → 매수 판단 질문은 사람에게 넘김</div><div class="ar">→</div>
+    <div class="st money"><b>⑤ AI Master</b>동의 받은 상담 신청이 중개사 센터로</div>
+  </div>
+  <div class="grid2">
+    <div class="box"><b class="t">한경이 맡는 것</b><ul><li>지면(메뉴·첫 화면·기사 하단)과 도메인</li><li>기사 데이터(단지·지역 자동 매칭용)</li><li>중개사 영업·계약(한경 브랜드)</li><li>현장 제보 검수·동네 기사 발행(편집권)</li></ul></div>
+    <div class="box"><b class="t">리치고가 맡는 것</b><ul><li>단지 데이터·AI 분석·지도 개발과 운영</li><li>AI 상담·홍보물 자동 생성</li><li>중개사 센터(SaaS)·리드 전달·정산 데이터</li><li>제보 실거래 대조·신뢰도·AI 기사 초안</li></ul></div>
+  </div>
+</section>
+
+<section id="s5" class="screens"><h2><small>05</small>화면 구성 <span class="muted" style="font-weight:500">— 시안을 눌러 바로 확인</span></h2>
+  <div class="grid3">
+    <a href="./#s1"><div class="box"><b class="t">① 집코노미 메인</b>동네뉴스맵 자리에 뉴스/시세/스코어 레이어, 왼쪽 패널 'AI 중개사' 탭, GNB 'AI 단지지도' 신설</div></a>
+    <a href="./#s2"><div class="box"><b class="t">② AI 단지지도</b>PC 전체 지도. 마커 클릭 시 왼쪽 분석, 오른쪽 AI Master(판매됨/입찰중/모집중)</div></a>
+    <a href="./#s3"><div class="box"><b class="t">③ 단지 AI 페이지</b>헬리오시티 예시. 실제 단지 사진·실데이터 차트·실거래 15건·입주민 지식·비교 단지·실제 한경 기사</div></a>
+    <a href="./#s4"><div class="box"><b class="t">④ 모바일·AI 상담</b>단지 홈 + 대본형 상담. '사도 되나요?'는 숫자만 주고 중개사 연결(동의 절차 포함)</div></a>
+    <a href="./#s5"><div class="box"><b class="t">⑤ 중개사 센터</b>리드 관리, 독점 단지 성과, 원클릭 리포트·숏폼·블로그·문자</div></a>
+    <a href="./#s6"><div class="box"><b class="t">⑥ 광고상품 안내</b>상품 3종, 세대수 등급 단가, 단지별 자리 현황, 신청 절차</div></a>
+    <a href="./#s7"><div class="box"><b class="t">⑦ 현장 제보·뉴스 PR</b>중개사 제보 → 편집국 제보 데스크(실거래 대조·AI 초안) → 실명 인용 기사</div></a>
+  </div>
+</section>
+
+<section id="s6"><h2><small>06</small>데이터 — 리치고에서 무엇을 쓰나</h2>
+  <p>시안에 들어간 숫자는 아래 원천에서 10/14에 직접 조회했다. <span class="pill ok">보유</span> 바로 사용 · <span class="pill q">확인</span> 사용 조건 확인 필요 · <span class="pill no">신규</span> 새로 만들어야 함</p>
+  <table>
+    <tr><th>화면 요소</th><th>원천</th><th>갱신</th><th>상태</th></tr>
+    <tr><td>단지 사진</td><td>한경 사진DB(시안은 사진 설명에 단지명이 적힌 한경 기사 사진 7곳)</td><td>수시</td><td><span class="pill q">확인</span> 한경 제공</td></tr>
+    <tr><td>단지 기본정보(세대수·입주·좌표·주차·키워드)</td><td>리치고 단지위키 / 리치고 단지 기본정보</td><td>상시</td><td><span class="pill ok">보유</span></td></tr>
+    <tr><td>KB 시세(매매·전세)</td><td>KB 시세 이력 (10/12 갱신)</td><td>주간</td><td><span class="pill q">확인</span> 제3자(한경) 표출 계약 범위</td></tr>
+    <tr><td>시세 추이 차트</td><td>리치고 시세(월별) 월별</td><td>월간</td><td><span class="pill ok">보유</span></td></tr>
+    <tr><td>실거래</td><td>국토부 실거래 데이터 (국토부 공공데이터)</td><td>일간</td><td><span class="pill ok">보유</span></td></tr>
+    <tr><td>매물 호가·매물 수</td><td>단지위키 listings (10/13 기준)</td><td>일간</td><td><span class="pill q">확인</span> 수집 원천의 재표출 가능 여부</td></tr>
+    <tr><td>AI 한줄 요약·입주민 지식(18개 항목)</td><td>단지위키 사실(facts) — 출처·등급 있음</td><td>수시</td><td><span class="pill ok">보유</span> ※ 원문 댓글 표출은 불가(아래)</td></tr>
+    <tr><td>호재 점수·거주 점수</td><td>단지위키 info</td><td>배치</td><td><span class="pill ok">보유</span></td></tr>
+    <tr><td>유사 단지 비교</td><td>리치고 유사단지 모델</td><td>배치</td><td><span class="pill ok">보유</span></td></tr>
+    <tr><td>학군(배정 학교)</td><td>학교 배정 데이터</td><td>주간</td><td><span class="pill q">확인</span> 알려진 결함 수정 후 노출</td></tr>
+    <tr><td>한경 기사 매칭</td><td>한경 기사 API/피드</td><td>실시간</td><td><span class="pill no">신규</span> 한경 제공</td></tr>
+    <tr><td>중개사·계약·리드</td><td>중개사 센터 DB</td><td>실시간</td><td><span class="pill no">신규</span></td></tr>
+    <tr><td>현장 제보·신뢰도</td><td>제보 DB(신규) + 실거래 테이블 대조</td><td>실시간 / 일 1회 대조</td><td><span class="pill no">신규</span> 대조 원천은 보유</td></tr>
+  </table>
+
+
+</section>
+
+<section id="s7"><h2><small>07</small>H-AI 스코어 산식(안)</h2>
+  <p>시안의 'H-AI 스코어'를 리치고에 있는 지표 5개로 만들었다. 산식은 화면에 공개하고, <b>'투자 추천 점수'가 아닌 '종합 지표'</b>로 표기한다.</p>
+  <table>
+    <tr><th>축</th><th>원천</th><th>0~100 환산</th><th class="r">가중치</th></tr>
+    <tr><td>생활</td><td>단지위키 거주 점수</td><td>그대로</td><td class="r">35%</td></tr>
+    <tr><td>시세흐름</td><td>리치고 시세 2년 변동률(과거 실측)</td><td>(변동률+10)÷50×100</td><td class="r">25%</td></tr>
+    <tr><td>호재</td><td>호재 등급(5단계)</td><td>등급×20</td><td class="r">15%</td></tr>
+    <tr><td>거래활력</td><td>최근 3개월 실거래 ÷ 세대수</td><td>회전율(%)×150, 최대 100</td><td class="r">15%</td></tr>
+    <tr><td>전세안정</td><td>KB 전세가율</td><td>50%에서 멀수록 감점</td><td class="r">10%</td></tr>
+  </table>
+  <h3>시안 단지 계산 결과 (실데이터)</h3>
+  <table id="scoreTbl"></table>
+  <div class="callout"><b>검토 포인트:</b> 지금 산식은 2년 상승폭이 큰 중소·구축 단지(가락쌍용1차 95, 래미안파크팰리스 93)가 잠실 대장 단지(리센츠 76)보다 높게 나온다. ① 단지 체급(가격·세대수) 축을 넣을지 ② 숫자 대신 등급(A~E)만 보일지 한경과 정해야 한다. 재건축 단지는 전세가율이 구조적으로 낮아(잠실주공5 12%) 전세안정 축을 빼는 예외 규칙도 필요하다.</div>
+</section>
+
+<section id="s8"><h2><small>08</small>광고 상품 설계</h2>
+  <h3>상품 구성</h3>
+  <table>
+    <tr><th>상품</th><th>단위</th><th>노출 위치</th><th>가격(가설)</th></tr>
+    <tr><td><b>AI Master 단지 독점</b> (핵심)</td><td>단지 1곳 · 사무소 1곳</td><td>지도 마커 아바타, 단지 페이지 우측 카드·하단 고정 버튼, AI 상담 사람 연결, 그 단지 기사 하단</td><td>월 40~200만원 (세대수 등급)</td></tr>
+    <tr><td>동네 스폰서</td><td>법정동 · 최대 3곳</td><td>동네뉴스맵 동 클러스터, 동네 기사 목록 상단</td><td>월 30만원~</td></tr>
+    <tr><td>상담 신청 건당 과금</td><td>동의 받은 신청 1건</td><td>위와 동일(옵션)</td><td>건당 3만원~</td></tr>
+  </table>
+  <h3>세대수 등급과 판매 방식</h3>
+  <table>
+    <tr><th>등급</th><th>세대수</th><th>판매</th><th class="r">월 단가(가설)</th></tr>
+    <tr><td>S</td><td>5,000 이상</td><td>공개 입찰(최저가 200만원)</td><td class="r">200만원~</td></tr>
+    <tr><td>A</td><td>2,000~4,999</td><td>선착순</td><td class="r">120만원</td></tr>
+    <tr><td>B</td><td>1,000~1,999</td><td>선착순</td><td class="r">70만원</td></tr>
+    <tr><td>C</td><td>1,000 미만</td><td>선착순</td><td class="r">40만원</td></tr>
+  </table>
+  <p class="muted">매출 감 잡기: 서울 대단지 100곳 × 평균 월 100만원 = 월 1억원. 실제 단지 수·판매율은 한경 영업 판단 후 다시 계산.</p>
+  <h3>독점 운영 규칙</h3>
+  <ul>
+    <li><b>단지당 1사무소.</b> 계약 3·6·12개월, 만료 30일 전 기존 계약자 갱신 우선권.</li>
+    <li><b>자격:</b> 중개사무소 개설등록 확인, 단지 반경 1km 안 사무소, 최근 1년 해당 단지 거래 실적(증빙 제출).</li>
+    <li><b>품질:</b> 상담 응답 시간·고객 평점 공개. 허위 매물·부당 광고 확인 시 즉시 해지.</li>
+    <li><b>지도 중립성:</b> 광고 여부로 단지 순위·스코어를 바꾸지 않는다. 'AI Master 있는 단지'는 독자가 필터를 켤 때만.</li>
+  </ul>
+  <h3>수익 배분</h3>
+  <p>한경(지면·영업·브랜드)과 리치고(데이터·개발·운영·SaaS) 배분은 협의 사항.</p>
+</section>
+
+<section id="s8b"><h2><small>09</small>현장 제보 → 동네 기사 → 중개사 뉴스 PR</h2>
+  <p class="lead">중개사가 "어제 ○○단지 계약됐다", "문의가 늘었다"를 제보하면, 한경이 읍면동·단지 단위로 모아 기사를 쓰고 기사에 사무소명·이름을 싣는다. 중개사는 '기사에 나온 동네 전문가'가 된다.</p>
+  <div class="flow">
+    <div class="st"><b>① 제보</b>중개사 센터에서 1분 입력 — 계약·문의 증가·급매·전세 동향·분위기</div><div class="ar">→</div>
+    <div class="st"><b>② 검증</b>계약 제보는 국토부 실거래 신고와 자동 대조, 제보자 신뢰도 점수</div><div class="ar">→</div>
+    <div class="st"><b>③ 모으기</b>읍면동별로 쌓이다 기준을 넘으면 담당 기자에게 '기사화 가능' 알림</div><div class="ar">→</div>
+    <div class="st"><b>④ 기사</b>AI 초안(제보+실거래+KB 시세) → 기자 취재·검수 → 발행</div><div class="ar">→</div>
+    <div class="st money"><b>⑤ PR</b>기사 속 실명 인용 + 취재원 카드, 기사 링크를 카톡·블로그·명함 QR로 공유</div>
+  </div>
+  <h3>누가 무엇을 얻나</h3>
+  <div class="grid3">
+    <div class="box"><b class="t">한경 편집국</b>읍면동 단위 '동네 시장 리포트'를 기자 1명이 대량으로 쓸 수 있다. 현장 취재원 풀이 생긴다.</div>
+    <div class="box"><b class="t">중개사</b>한국경제 기사에 이름이 실리는 개인 PR. 광고보다 신뢰가 높고, 링크를 계속 재사용한다.</div>
+    <div class="box"><b class="t">독자</b>실거래 신고(최대 30일 늦음)보다 빠른 현장 분위기를, 신고로 확인된 숫자와 함께 본다.</div>
+  </div>
+  <h3>제보 신뢰 장치 — 리치고 실거래 데이터로 대조</h3>
+  <table>
+    <tr><th>제보 상태</th><th>판정</th><th>기사 반영</th><th>신뢰도</th></tr>
+    <tr><td><span class="pill ok">신고 확인</span></td><td>단지·평형·계약일·가격(±1%)·층 구간이 국토부 신고와 일치</td><td>숫자로 인용</td><td>가점</td></tr>
+    <tr><td><span class="pill q">신고 대기</span></td><td>계약 후 30일 이내, 아직 신고 전</td><td>'현장 전언'으로만, 가격 숫자 빼고</td><td>변화 없음</td></tr>
+    <tr><td><span class="pill no">신고 없음</span></td><td>30일 지나도 신고 없음 또는 가격 불일치</td><td>제외</td><td>감점, 반복 시 제보 제한·AI Master 해지</td></tr>
+  </table>
+  <p class="muted">시안 ⑦의 계약 제보 3건(헬리오시티 9/22 30억5,500 · 가락쌍용1차 10/6 19억3,500 · 래미안파크팰리스 9/12 22억9,000)은 실제 국토부 신고와 맞춘 값이다. 대조는 이미 있는 국토부 실거래 데이터로 바로 할 수 있다.</p>
+  <h3>제보 입력 규칙</h3>
+  <ul>
+    <li>동·호수 입력칸을 아예 두지 않는다. 층은 저층/중층/고층 구간만.</li>
+    <li>계약 제보는 '거래 당사자 공개 동의 받음' 체크가 필수(공인중개사의 비밀 유지 의무 대응).</li>
+    <li>실명 게재 동의를 따로 받는다. 동의하지 않으면 '가락동 A공인중개사'처럼 익명으로 인용한다.</li>
+  </ul>
+  <h3>광고와의 선 긋기</h3>
+  <ul>
+    <li><b>제보는 모든 중개사가 무료.</b> 기사에 실을지, 누구를 인용할지는 편집국이 정한다. 돈으로 인용을 사는 상품은 만들지 않는다.</li>
+    <li>AI Master는 인용됐을 때 취재원 카드에 '상담 버튼(광고 표기)'이 붙는 것만 다르다.</li>
+    <li>기사 하단에 "현장 제보를 바탕으로 기자가 취재·검수, 비용 없음" 문구를 고정한다.</li>
+    <li>돈을 받고 쓰는 'PR 기사'가 필요하면 별도 상품으로 두고 반드시 '광고'로 표시한다(이번 범위 밖).</li>
+  </ul>
+  <h3>단지 페이지·지도와의 연결</h3>
+  <p>단지 AI 페이지에 '동네 시장 분위기' 칸(오름/비슷/내림 제보 수 + 최근 코멘트 3개)을 넣고, 그 제보로 쓴 기사로 연결한다(시안 ③). 동네뉴스맵의 동 클러스터에도 '현장 제보 n건'을 같이 띄울 수 있다.</p>
+</section>
+
+<section id="s9"><h2><small>10</small>연동 방식</h2>
+  <table>
+    <tr><th>방식</th><th>내용</th><th>장점</th><th>단점</th></tr>
+    <tr><td><b>A. 경로 프록시 (권장)</b></td><td>hankyung.com/realestate/map, /danji/* 경로를 리치고 서버로 연결(리버스 프록시)</td><td>한경 도메인으로 검색 유입이 한경에 쌓임, 개발 빠름</td><td>한경 인프라팀 설정 필요</td></tr>
+    <tr><td>B. 위젯(iframe/JS)</td><td>첫 화면 지도만 위젯으로 삽입, 상세는 서브도메인(map.hankyung.com)</td><td>한경 개발 부담 최소</td><td>검색 유입 효과 약함</td></tr>
+    <tr><td>C. API 제공</td><td>한경이 화면을 직접 개발, 리치고는 데이터 API만</td><td>한경 디자인 완전 통제</td><td>한경 개발 공수 큼, AI·SaaS 분리 어려움</td></tr>
+  </table>
+  <p>로그인은 한경 회원 연동(SSO)을 쓰고, 상담 신청 시 연락처 제3자 제공 동의를 따로 받는다.</p>
+</section>
+
+<section id="s10"><h2><small>11</small>일정 (안)</h2>
+  <div class="gantt">
+    <div class="row"><span>0단계 협의·계약 (2주)</span><div><div class="bar" style="background:#8b94a7;width:14%">범위·데이터 계약</div></div></div>
+    <div class="row"><span>1단계 지도+단지 페이지 (6주)</span><div><div class="bar" style="background:#1a5fd0;width:42%;margin-left:14%">서울·수도권 MVP · SEO</div></div></div>
+    <div class="row"><span>2단계 AI Master·중개사 센터·제보 (4주)</span><div><div class="bar" style="background:#b8892b;width:28%;margin-left:56%">결제·리드·현장 제보</div></div></div>
+    <div class="row"><span>3단계 AI 상담·브리핑 영상 (4주)</span><div><div class="bar" style="background:#14a874;width:16%;margin-left:84%">고도화</div></div></div>
+  </div>
+
+</section>
+
+<section id="s11"><h2><small>12</small>위험 요소·확인할 것</h2>
+  <table>
+    <tr><th>구분</th><th>내용</th><th>대응</th></tr>
+    <tr><td>공인중개사법</td><td>중개대상물 표시·광고 시 사무소 명칭·등록번호·대표자·소재지·연락처 명시 의무, 허위·과장 광고 금지</td><td>AI Master 카드에 필수 항목 고정, '광고' 표기, 매물은 확인 매물만</td></tr>
+    <tr><td>'공식/검증' 표현</td><td>시안의 '공식 중개사', '검증된 AI 중개사'는 소비자 오인 소지</td><td>'AI Master(광고)'로 통일, 품질 보증 문구 금지</td></tr>
+    <tr><td>투자 자문</td><td>AI가 매수·매도를 권하면 유사투자자문 논란</td><td>AI는 데이터만 답하고 판단 질문은 사람에게 넘김(시안 ④에 반영), 가격 예측은 제공하지 않음</td></tr>
+    <tr><td>개인정보</td><td>상담 신청 연락처를 중개사에게 넘김</td><td>제3자 제공 별도 동의, 마스킹, 90일 뒤 파기</td></tr>
+    <tr><td>데이터 라이선스</td><td>KB 시세·매물 호가의 한경 지면 재표출 가능 범위</td><td>계약 전 법무 확인. 안 되면 리치고 시세·실거래로 대체</td></tr>
+
+    <tr><td>데이터 품질</td><td>학군 배정 누락·학군 등급 결함, 신축 단지 시세 공백(예: 잠실르엘)</td><td>학군 등급 제외, 신축은 '산정 전' 표기(시안 반영)</td></tr>
+    <tr><td>기사와 광고 구분 (신문법)</td><td>AI Master(유료) 중개사가 기사에 자주 인용되면 '기사형 광고'로 보일 수 있음</td><td>인용은 편집국 판단·무료, 상담 버튼만 광고 표기, 인용 횟수 통계를 내부 점검(유료 계약자 쏠림 감시)</td></tr>
+    <tr><td>중개사 비밀 유지 의무</td><td>공인중개사는 업무상 알게 된 비밀을 누설하면 안 됨 — 거래 제보가 당사자 정보 노출이 될 수 있음</td><td>동·호수 입력 불가, 층은 구간만, 당사자 공개 동의 필수, 가격은 신고 확인 후에만 숫자로</td></tr>
+    <tr><td>시세 띄우기 제보</td><td>신고가 거짓 제보로 호가를 띄우려는 시도(신고가 띄우기)</td><td>신고 대조 전엔 숫자 미게재, 30일 신고 없으면 제외·감점, 반복 시 제보 제한</td></tr>
+
+  </table>
+</section>
+
+<section id="s12"><h2><small>13</small>결정이 필요한 것</h2>
+  <ol>
+    <li><b>연동 방식</b> — 경로 프록시(A)로 갈지. 한경 인프라팀 가능 여부.</li>
+    <li><b>H-AI 스코어</b> — 숫자 점수로 보일지, 등급(A~E)만 보일지. 산식에 '단지 체급' 축 추가 여부.</li>
+    <li><b>KB 시세 표출</b> — 현재 KB 계약으로 한경 화면 표출이 되는지(법무).</li>
+    <li><b>가격·판매 방식</b> — 세대수 등급 단가, S등급 입찰 여부, 건당 과금 병행 여부.</li>
+    <li><b>영업 주체</b> — 중개사 영업·계약을 한경이 할지, 리치고가 대행할지.</li>
+    <li><b>수익 배분</b> — SI 개발비 + 매출 배분 / 매출 배분만.</li>
+    <li><b>1차 범위</b> — 서울 전체 / 서울·수도권 / 대단지(1,000세대+)만.</li>
+    <li><b>현장 제보 운영</b> — 편집국 담당 기자 배정, 기사화 기준(확인 거래 3 + 분위기 3), 실명 인용 원칙, 유료 PR 기사 상품을 둘지.</li>
+  </ol>
+</section>
+
+</div>
+<script>
+(function () {
+  const rows = HK.DANJI.filter(d => d.score != null).sort((a, b) => b.score - a.score);
+  const cls = HK.scoreClass;
+  let h = '<tr><th>단지</th><th class="r">세대수</th><th class="r">KB 매매</th><th class="r">생활</th><th class="r">시세흐름</th><th class="r">호재</th><th class="r">거래활력</th><th class="r">전세안정</th><th class="r">스코어</th></tr>';
+  rows.forEach(d => {
+    const a = d.axes;
+    h += `<tr><td>${d.name}</td><td class="r">${d.hh.toLocaleString()}</td><td class="r">${HK.won(d.kbM)}</td><td class="r">${a.live}</td><td class="r">${a.trend}</td><td class="r">${a.goodnews}</td><td class="r">${a.activity}</td><td class="r">${a.stable}</td><td class="r"><span class="sc ${cls(d.score)}">${d.score}</span></td></tr>`;
+  });
+  h += '<tr><td>잠실르엘</td><td class="r">1,865</td><td class="r">-</td><td colspan="5" class="muted">2026년 1월 입주 신축 — 시세·실거래 누적 전이라 산정 제외</td><td class="r"><span class="sc sx">–</span></td></tr>';
+  document.getElementById('scoreTbl').innerHTML = h;
+})();
+</script>
+</body>
+</html>

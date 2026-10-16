@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta property="og:type" content="website">
+<meta property="og:title" content="집코노미 AI 단지지도 · 화면 시안">
+<meta property="og:description" content="한경 집코노미 동네뉴스맵 확장 · 단지 AI 페이지 · 중개사 AI Master 독점 상품 · 현장 제보 뉴스 PR — 리치고 데이터로 만든 제안 시안">
+<meta property="og:image" content="https://kkwon91.github.io/hankyung-ai-map-demo/og.png">
+<meta property="og:url" content="https://kkwon91.github.io/hankyung-ai-map-demo/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>집코노미 AI 지도 시안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="data.js"></script>
+<script src="news.js"></script>
+<style>
+/* ── 한국경제 디자인 토큰 (hankyung.com common.ui.all.css / realestate.css 실측) ── */
+:root{
+  --text:#121212; --text2:#585858; --meta:#888; --line:#ddd; --line2:#e5e5e5; --line3:#eee; --bg2:#f7f7f7; --bg3:#f5f5f7;
+  --blue:#0d79c7; --navy:#142c67; --up:#b50000; --down:#2853b2; --red:#ca002c; --sub:#2189ff;
+  --s90:#0b5fa5; --s80:#0d79c7; --s70:#4a9ad4; --s60:#8fbfe3; --sx:#c3c3c3;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;color:var(--text);background:#e9eaee;font-size:14px;line-height:1.5;letter-spacing:-.2px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;letter-spacing:-.2px}
+img{display:block;max-width:100%}
+.ph{object-fit:cover;width:100%;height:100%;background:#ddd}
+/* 시안 내비 */
+.deck{position:sticky;top:0;z-index:2000;background:#121212;color:#fff;display:flex;align-items:center;gap:6px;padding:8px 16px;flex-wrap:wrap}
+.deck .ttl{font-weight:700;margin-right:10px;font-size:13px}
+.deck .ttl small{color:#999;font-weight:400;margin-left:6px}
+.deck button.tab{background:transparent;border:1px solid #444;color:#ccc;border-radius:2px;padding:5px 10px;font-size:12.5px}
+.deck button.tab.on{background:#fff;color:#121212;border-color:#fff;font-weight:700}
+.deck .sp{flex:1}
+.deck label{font-size:12px;color:#ccc;display:flex;gap:6px;align-items:center}
+.deck a.doc{font-size:12px;color:#7cc0f5;margin-left:8px}
+.screen{display:none;padding:22px 16px 60px}
+.screen.on{display:block}
+.cap{max-width:1280px;margin:0 auto 12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.cap h2{margin:0;font-size:18px}
+.cap p{margin:0;color:#555;font-size:13px}
+.frame{max-width:1280px;margin:0 auto;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.10);position:relative;overflow:clip}
+.wrap{width:1200px;max-width:100%;margin:0 auto;padding:0 20px}
+/* 기획 주석 */
+.an{position:absolute;z-index:900;width:22px;height:22px;border-radius:50%;background:#ff2d2d;color:#fff;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px rgba(255,45,45,.25);font-style:normal}
+.an::after{content:attr(data-n)}
+.annos{max-width:1280px;margin:14px auto 0;background:#fff;border:1px dashed #f19a9a;padding:12px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:6px 18px;font-size:12.5px;color:#555}
+.annos b{display:inline-flex;width:18px;height:18px;border-radius:50%;background:#ff2d2d;color:#fff;font-size:11px;align-items:center;justify-content:center;margin-right:6px}
+body.noanno .an, body.noanno .annos{display:none}
+
+/* ── 한경 헤더 ── */
+.hk-head .top{display:flex;align-items:center;height:52px;gap:18px}
+.hk-head .top .ic{width:22px;height:22px}
+.hk-head .top .logo-hk{height:22px}
+.hk-head .top .r{margin-left:auto;display:flex;gap:18px;font-size:13px;color:var(--text)}
+.hk-head .top .r span+span{position:relative}
+.hk-head .logo-zip{display:flex;justify-content:center;margin-top:-26px}
+.hk-head .logo-zip img{width:150px;height:49px}
+.gnb{display:flex;justify-content:center;gap:30px;font-size:15px;font-weight:500;padding:14px 0 13px;border-bottom:1px solid var(--line);position:relative}
+.gnb .bar{width:1px;background:var(--line);margin:3px -6px}
+.gnb .new{color:var(--blue);font-weight:700;position:relative}
+.gnb .new::after{content:'';position:absolute;top:-2px;right:-7px;width:5px;height:5px;border-radius:50%;background:var(--red)}
+/* 섹션 제목 · 기사 리스트 (한경 패턴) */
+.sec-tit{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:19px;font-weight:700;color:var(--blue);letter-spacing:-.6px}
+.sec-tit .chev{font-weight:400;font-size:17px;margin-left:-4px}
+.sec-tit .pill{font-size:12px;font-weight:500;color:var(--blue);border:1px solid var(--blue);border-radius:999px;padding:2px 10px 3px;letter-spacing:-.3px}
+.sec-tit .sub{font-size:13px;color:var(--meta);font-weight:400}
+.sec-tit .more{margin-left:auto;font-size:13px;color:var(--meta);font-weight:400}
+.ntag{display:inline-flex;gap:6px;align-items:center;margin-bottom:6px}
+.ntag .b{background:#121212;color:#fff;font-size:10px;font-weight:700;padding:1px 5px;letter-spacing:.3px}
+.ntag .b.ai{background:var(--navy)}
+.ntag .c{color:var(--red);font-size:13px;font-weight:700}
+.ntag .c.bl{color:var(--blue)}
+.date{font-size:12.5px;color:var(--meta);margin-top:8px;font-family:Tahoma,'Noto Sans KR',sans-serif;letter-spacing:0}
+.nitem{display:flex;gap:16px;padding:14px 0;border-bottom:1px solid var(--line3)}
+.nitem:last-child{border-bottom:0}
+.nitem .t{font-size:16px;font-weight:500;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.nitem .thumb{width:150px;height:94px;flex:none;overflow:hidden}
+.nitem.sm .t{font-size:15px}
+.nitem.sm .thumb{width:100px;height:64px}
+.lead-item{display:grid;grid-template-columns:300px 1fr;gap:20px;padding-bottom:20px;border-bottom:1px solid var(--line3)}
+.lead-item .t{font-size:24px;font-weight:700;line-height:1.38;letter-spacing:-.8px}
+.lead-item .s{font-size:13.5px;color:var(--meta);margin-top:8px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.divider{border:0;border-top:1px solid var(--text);margin:34px 0 26px}
+.up{color:var(--up)} .down{color:var(--down)} .flat{color:var(--text2)}
+.ad{display:inline-block;font-size:10.5px;border:1px solid #bbb;color:#888;padding:0 4px;line-height:15px;font-weight:500;vertical-align:middle;letter-spacing:0}
+.btn{border:0;border-radius:2px;padding:10px 14px;font-weight:700;font-size:13.5px;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.black{background:#121212;color:#fff}
+.btn.blue{background:var(--blue);color:#fff}
+.btn.navy{background:var(--navy);color:#fff}
+.btn.line{background:#fff;border:1px solid var(--line);color:var(--text)}
+.btn.sub{background:var(--sub);color:#fff;border-radius:999px}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);padding:5px 11px;font-size:13px;color:var(--text);background:#fff;white-space:nowrap;border-radius:2px}
+.chip.on{background:#121212;border-color:#121212;color:#fff;font-weight:500}
+.sc{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:20px;color:#fff;font-weight:700;font-size:11.5px;padding:0 5px;font-family:Tahoma,sans-serif;letter-spacing:0}
+.s90{background:var(--s90)} .s80{background:var(--s80)} .s70{background:var(--s70)} .s60{background:var(--s60);color:#121212} .sx{background:var(--sx)}
+.face{border-radius:50%;object-fit:cover;flex:none;background:#ddd}
+.mbadge{display:inline-flex;align-items:center;background:var(--navy);color:#fff;font-size:10.5px;font-weight:700;padding:1px 6px;letter-spacing:.2px}
+.note{font-size:12px;color:var(--meta)}
+.src{font-size:11.5px;color:var(--meta);margin-top:8px}
+.box{border:1px solid var(--line);padding:16px}
+.box-tit{font-size:16px;font-weight:700;margin:0 0 12px;display:flex;align-items:center;gap:8px;letter-spacing:-.5px}
+.box-tit .more{margin-left:auto;font-size:12.5px;color:var(--meta);font-weight:400}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl th{font-weight:500;color:var(--text2);text-align:left;padding:9px 8px;border-top:2px solid var(--text);border-bottom:1px solid var(--line);background:var(--bg2);font-size:12.5px}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--line3)}
+.tbl td.r,.tbl th.r{text-align:right}
+.num{font-family:Tahoma,'Noto Sans KR',sans-serif;letter-spacing:-.3px}
+.legal{font-size:12px;color:var(--meta);background:var(--bg2);padding:10px 12px;margin-top:10px;line-height:1.65}
+
+/* ── 지도 ── */
+.leaflet-container{font-family:inherit;background:#eef0f3}
+.pin{position:relative;transform:translate(-50%,-100%);display:inline-flex;align-items:center;gap:6px;background:#fff;padding:4px 9px 4px 4px;box-shadow:0 2px 8px rgba(0,0,0,.22);white-space:nowrap;font-size:12px;border:1px solid #c9c9c9;cursor:pointer;border-radius:2px}
+.pin::after{content:'';position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);border:6px solid transparent;border-top-color:#fff;border-bottom:0}
+.pin b{font-weight:700} .pin em{font-style:normal;color:var(--blue);font-weight:700}
+.pin.sel{background:#121212;color:#fff;border-color:#121212}
+.pin.sel::after{border-top-color:#121212}
+.pin.sel em{color:#7cc0f5}
+.pin .mav{width:22px;height:22px;border:2px solid var(--navy)}
+.pin .nb{background:var(--blue);color:#fff;font-size:10px;padding:0 5px;font-weight:700}
+.newsc{transform:translate(-50%,-50%);background:rgba(66,128,204,.78);color:#fff;border-radius:6px;padding:3px 8px 4px;text-align:center;font-weight:700;line-height:1.1;border:1px solid rgba(255,255,255,.6)}
+.newsc small{display:block;font-size:9px;opacity:.9;letter-spacing:.5px}
+.newsc b{font-size:17px;font-family:Tahoma,sans-serif}
+
+/* ── S1 ── */
+.s1-hero{display:grid;grid-template-columns:1fr 300px;margin-top:0}
+.s1-mapwrap{position:relative;height:500px;border:2px solid #ff2d2d;border-right-width:2px}
+.s1-map{position:absolute;inset:0}
+.s1-panel{position:absolute;left:14px;top:14px;bottom:14px;width:290px;z-index:800;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.16);display:flex;flex-direction:column;overflow:hidden}
+.s1-panel .ph-head{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 8px}
+.s1-panel .ph-head b{color:var(--blue);font-size:15px}
+.s1-panel .sel{border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:12.5px;min-width:90px;display:flex;justify-content:space-between}
+.s1-tabs{display:flex;padding:0 14px;gap:14px;border-bottom:1px solid var(--line3)}
+.s1-tabs button{border:0;background:none;padding:6px 0 8px;font-size:13px;color:var(--meta);border-bottom:2px solid transparent;font-weight:500}
+.s1-tabs button.on{color:var(--text);border-bottom-color:var(--text);font-weight:700}
+.s1-list{overflow:auto;flex:1;padding:4px 14px}
+.s1-row{display:flex;gap:10px;padding:9px 0;align-items:center;cursor:pointer}
+.s1-row .th{width:80px;height:52px;flex:none;overflow:hidden}
+.s1-row .t{font-size:14px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.s1-top{position:absolute;top:14px;left:calc(50% + 60px);transform:translateX(-50%);z-index:800;display:flex;gap:8px;align-items:center}
+.s1-research{background:#1c2c64;color:#fff;border-radius:999px;padding:9px 16px;font-size:13.5px;font-weight:500;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+.s1-layer{display:flex;background:#fff;border-radius:999px;padding:3px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.s1-layer button{border:0;background:transparent;border-radius:999px;padding:6px 13px;font-weight:500;color:var(--text2);font-size:13px}
+.s1-layer button.on{background:#121212;color:#fff;font-weight:700}
+.s1-mini{position:absolute;right:12px;bottom:12px;z-index:800;width:280px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.2);display:none;border-radius:2px;overflow:hidden}
+.s1-side{border:1px solid var(--line);border-left:0}
+.s1-tv{position:relative;height:190px;overflow:hidden;background:#000}
+.s1-tv .yt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:40px;border-radius:10px;background:#f00;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
+.s1-tv .cap2{position:absolute;left:0;right:0;top:0;padding:10px 12px;background:linear-gradient(180deg,rgba(0,0,0,.75),transparent);color:#fff;font-weight:700;font-size:14px}
+.s1-pick{padding:12px 14px}
+.s1-pick h4{margin:2px 0 8px;color:var(--blue);font-size:15px}
+.s1-pick .it{display:flex;gap:10px;margin-bottom:11px;font-size:13.5px;line-height:1.4}
+.s1-pick .it .th{width:96px;height:58px;flex:none;overflow:hidden}
+.s1-search{display:flex;align-items:center;gap:14px;border:1px solid var(--line);padding:14px 18px;margin-top:26px;background:var(--bg3)}
+.s1-search .in{flex:1;border:2px solid #121212;background:#fff;padding:10px 16px;color:var(--meta);font-size:15px;display:flex;justify-content:space-between}
+.dcard .ph-w{height:120px;overflow:hidden;position:relative}
+.dcard .ph-w .sc{position:absolute;left:0;top:0;height:22px;font-size:12px}
+.dcard .t{font-size:15px;font-weight:700;margin-top:8px}
+
+/* ── S2 ── */
+.s2-head{display:flex;align-items:center;gap:16px;height:60px;padding:0 20px;border-bottom:1px solid var(--line)}
+.s2-head .lg{display:flex;align-items:center;gap:10px}
+.s2-head .lg .logo-hk{height:20px}
+.s2-head .lg .logo-zip{height:30px}
+.s2-head .lg .tt{font-size:17px;font-weight:700;padding-left:12px;border-left:1px solid var(--line);letter-spacing:-.6px}
+.s2-head .srch{flex:0 0 360px;border:2px solid #121212;padding:7px 14px;color:var(--meta);display:flex;justify-content:space-between;font-size:13.5px}
+.s2-head .menu{display:flex;gap:18px;font-weight:500;font-size:14.5px}
+.s2-head .menu .on{color:var(--blue);font-weight:700}
+.s2-filter{display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;background:#fff}
+.s2-body{display:grid;grid-template-columns:360px 1fr 300px;height:740px}
+.s2-left{border-right:1px solid var(--line);overflow:auto}
+.s2-mapbox{position:relative}
+.s2-map{position:absolute;inset:0}
+.s2-right{border-left:1px solid var(--line);overflow:auto;padding:18px}
+.s2-legend{position:absolute;right:12px;top:12px;z-index:800;background:#fff;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.15);font-size:12px;border-radius:2px}
+.s2-legend div{display:flex;align-items:center;gap:6px;margin:3px 0}
+.s2-legend i{width:12px;height:12px;display:inline-block}
+.s2-ask{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:800;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;padding:6px 6px 6px 18px;width:min(520px,86%);border:2px solid #121212}
+.s2-ask span{flex:1;color:var(--meta);font-size:13.5px}
+.kv{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--text)}
+.kv>div{padding:10px 12px;border-bottom:1px solid var(--line3)}
+.kv>div:nth-child(odd){border-right:1px solid var(--line3)}
+.kv .l{font-size:12px;color:var(--meta)}
+.kv .v{font-size:19px;font-weight:700;margin-top:1px}
+.scorebox{display:flex;gap:10px;align-items:center;border:1px solid var(--line);padding:14px}
+.scorebox .n{font-size:44px;font-weight:900;line-height:1;color:var(--blue);font-family:Tahoma,sans-serif;letter-spacing:-2px}
+.scorebox .n small{font-size:14px;color:var(--meta);font-weight:400;letter-spacing:0}
+.aisum{border-left:3px solid var(--blue);background:var(--bg3);padding:12px 14px;font-size:14px;line-height:1.65;margin-top:14px}
+.aisum .h{font-size:12px;font-weight:700;color:var(--blue);margin-bottom:4px}
+.mcard{border:1px solid var(--line);border-top:3px solid var(--navy);padding:16px}
+.mcard .row{display:flex;gap:12px;align-items:center}
+.listing{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line3)}
+.listing .th{width:84px;height:60px;flex:none;overflow:hidden}
+
+/* ── S3 단지 페이지 ── */
+.crumb{font-size:13px;color:var(--meta);padding:18px 0 0}
+.crumb b{color:var(--text);font-weight:500}
+.dtitle{display:flex;align-items:flex-end;gap:16px;padding:10px 0 18px;border-bottom:1px solid var(--text)}
+.dtitle h1{margin:0;font-size:36px;letter-spacing:-1.4px;line-height:1.2}
+.dtitle .meta{font-size:14px;color:var(--text2);margin-top:8px}
+.dtitle .tools{margin-left:auto;display:flex;gap:8px}
+.dtitle .tools span{width:36px;height:36px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;border-radius:50%}
+.s3-body{display:grid;grid-template-columns:1fr 340px;gap:40px;padding:26px 0 120px}
+.hero{position:relative}
+.hero .img{height:400px;overflow:hidden}
+.hero figcaption{font-size:12.5px;color:var(--meta);padding:8px 0 0}
+.ticker{display:grid;grid-template-columns:repeat(5,1fr);border-top:2px solid var(--text);border-bottom:1px solid var(--line);margin-top:22px}
+.ticker>div{padding:12px 14px;border-right:1px solid var(--line3)}
+.ticker>div:last-child{border-right:0}
+.ticker .l{font-size:12.5px;color:var(--text2)}
+.ticker .v{font-size:22px;font-weight:700;margin-top:2px;font-family:Tahoma,'Noto Sans KR',sans-serif;letter-spacing:-.8px}
+.ticker .s{font-size:12px;margin-top:2px}
+.s3-sec{margin-top:40px}
+.wiki{display:grid;grid-template-columns:1fr 1fr;border-top:2px solid var(--text)}
+.wiki .w{padding:12px 14px;border-bottom:1px solid var(--line3);font-size:14px;line-height:1.6}
+.wiki .w:nth-child(odd){border-right:1px solid var(--line3)}
+.wiki .w b{font-size:13px;margin-right:6px}
+.st{font-size:11px;font-weight:700;padding:1px 6px;display:inline-block;vertical-align:1px}
+.st.good{background:#e8f2fb;color:var(--blue)} .st.up{background:#e8f2fb;color:var(--navy)} .st.warn{background:#fdeeee;color:var(--up)}
+.s3-sticky{position:sticky;bottom:0;z-index:60;background:#fff;border-top:1px solid var(--text);box-shadow:0 -4px 14px rgba(0,0,0,.06)}
+.s3-sticky .wrap{display:flex;gap:10px;align-items:center;height:68px}
+.rank-item{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line3)}
+.rank-item .no{width:18px;font-weight:700;color:var(--blue);font-family:Tahoma}
+.rank-item .th{width:64px;height:44px;overflow:hidden;flex:none}
+
+/* ── S4 모바일 ── */
+.phones{display:flex;gap:40px;justify-content:center;flex-wrap:wrap;padding:24px 0}
+.phone{width:375px;height:780px;border-radius:44px;background:#111;padding:12px;box-shadow:0 20px 50px rgba(0,0,0,.3);position:relative}
+.phone .scr{width:100%;height:100%;border-radius:34px;background:#fff;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.phone .stat{height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 26px;font-weight:700;font-size:14px;flex:none}
+.phone .mhead{display:flex;align-items:center;gap:10px;padding:4px 16px 10px;border-bottom:1px solid var(--line);flex:none}
+.phone .mhead .logo-zip{height:24px}
+.phone .body{flex:1;overflow:auto}
+.phone .cta{flex:none;display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px 12px 22px;border-top:1px solid var(--line);background:#fff}
+.m-sec{padding:16px;border-bottom:8px solid var(--bg2)}
+.m-row{display:flex;justify-content:space-between;padding:7px 0;font-size:14px;border-bottom:1px solid var(--line3)}
+.chat{flex:1;overflow:auto;padding:14px;background:var(--bg3);display:flex;flex-direction:column;gap:10px}
+.bub{max-width:84%;padding:10px 12px;font-size:13.5px;line-height:1.55}
+.bub.me{align-self:flex-end;background:#121212;color:#fff}
+.bub.ai{align-self:flex-start;background:#fff;border:1px solid var(--line)}
+.bub.sys{align-self:center;background:#e8f2fb;color:var(--navy);font-size:12px;padding:5px 12px}
+.qchips{display:flex;gap:6px;overflow:auto;padding:8px 12px;flex:none;border-top:1px solid var(--line)}
+.qchips button{flex:none;border:1px solid var(--line);background:#fff;color:var(--text);padding:6px 11px;font-size:12.5px;font-weight:500;border-radius:999px}
+.handoff{background:#fff;border:1px solid var(--line);border-top:3px solid var(--navy);padding:12px;font-size:12.5px}
+
+/* ── S5 중개사 센터 ── */
+.saas{display:grid;grid-template-columns:220px 1fr;min-height:820px}
+.saas nav{background:var(--navy);color:#c9d3ea;padding:20px 12px}
+.saas nav .b{padding:0 8px 18px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:12px}
+.saas nav .b img{height:26px;filter:brightness(0) invert(1)}
+.saas nav .b div{color:#fff;font-weight:700;margin-top:6px;font-size:14px}
+.saas nav a{display:block;padding:10px;font-size:14px;margin-bottom:1px}
+.saas nav a.on{background:rgba(255,255,255,.1);color:#fff;font-weight:700}
+.saas main{background:var(--bg3);padding:24px}
+.k4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.k4 .box{background:#fff}
+.k4 .v{font-size:30px;font-weight:700;font-family:Tahoma,sans-serif;letter-spacing:-1px}
+.lst{font-size:11.5px;font-weight:700;padding:2px 8px;display:inline-block}
+.lst.new{background:#e8f2fb;color:var(--blue)} .lst.ing{background:#eef7ee;color:#1d7a3a} .lst.plan{background:#fff4e5;color:#b85c00} .lst.done{background:var(--bg2);color:var(--text2)}
+.tools{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tools button{border:1px solid var(--line);background:#fff;padding:14px;text-align:left;font-size:13px;color:var(--text2)}
+.tools button b{display:block;font-size:14.5px;margin-bottom:2px;color:var(--text)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:3000;display:none;align-items:center;justify-content:center;padding:16px}
+.modal .mbox{background:#fff;max-width:640px;width:100%;max-height:86vh;overflow:auto;padding:24px}
+
+/* ── S6 광고상품 ── */
+.prod-hero{background:#121212;color:#fff;padding:50px 0;position:relative;overflow:hidden}
+.prod-hero .bgimg{position:absolute;inset:0;opacity:.28}
+.prod-hero h1{font-size:36px;margin:12px 0 8px;letter-spacing:-1.4px;line-height:1.3}
+.prod-hero h1 em{font-style:normal;color:#7cc0f5}
+.prods{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:34px 0}
+.prod{border-top:3px solid var(--text);border-bottom:1px solid var(--line);padding:20px 4px}
+.prod.main{border-top-color:var(--blue)}
+.prod h3{margin:6px 0 8px;font-size:20px;letter-spacing:-.6px}
+.prod ul{padding-left:18px;margin:10px 0;color:var(--text2);font-size:14px}
+.prod li{margin:4px 0}
+.prod .price{font-size:22px;font-weight:700;margin-top:10px}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);border-top:2px solid var(--text)}
+.tiers>div{padding:14px;border-right:1px solid var(--line3);border-bottom:1px solid var(--line)}
+.tiers>div:last-child{border-right:0}
+.tiers b{display:block;color:var(--blue);font-size:12.5px}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.steps>div{background:var(--bg2);padding:14px;font-size:13.5px}
+.steps>div>b{display:block;color:var(--blue);font-size:12.5px;margin-bottom:4px}
+
+/* ── S7 현장 제보 ── */
+.s7top{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:400px 1fr;gap:22px;align-items:start}
+.fld{border:1px solid var(--line);padding:8px 10px;margin-top:8px;font-size:13.5px}
+.fld label{display:block;font-size:11.5px;color:var(--meta);margin-bottom:2px}
+.agree{display:flex;gap:6px;align-items:flex-start;font-size:12px;margin-top:8px;color:var(--text2)}
+.trust{display:flex;justify-content:space-between;align-items:center;background:var(--bg3);padding:10px 12px;margin-top:12px;border-left:3px solid var(--blue)}
+.deskhead{background:var(--navy);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center}
+.dongs{display:flex;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.dongc{border:1px solid var(--line);padding:9px 11px;min-width:160px;font-size:13px}
+.dongc.on{border-color:var(--text);border-width:2px}
+.gbar{height:5px;background:var(--line3);margin-top:6px;overflow:hidden}
+.gbar i{display:block;height:100%;background:var(--blue)}
+.deskbody{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:16px 18px 20px}
+.rep{border-bottom:1px solid var(--line3);padding:9px 0;font-size:13px}
+.rep.dim{opacity:.5}
+.ck{font-size:11px;font-weight:700;padding:1px 7px;white-space:nowrap}
+.ck.ok{background:#e8f2fb;color:var(--blue)} .ck.wait{background:#fff4e5;color:#b85c00} .ck.none{background:#fdeeee;color:var(--up)} .ck.na{background:var(--bg2);color:var(--text2)}
+.draft{background:var(--bg3);padding:14px;font-size:13.5px;line-height:1.75}
+.draft p{margin:0 0 8px}
+.draft mark{background:#dcecf9;color:inherit;padding:0 2px}
+.draft q{quotes:none;background:#f3f3f3;border-bottom:2px solid var(--blue);font-weight:700}
+.article{display:grid;grid-template-columns:1fr 300px;gap:40px;padding:30px 0 40px}
+.atitle{font-size:32px;line-height:1.4;letter-spacing:-1.2px;margin:8px 0 14px;font-weight:700}
+.abyline{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);padding-bottom:14px;border-bottom:1px solid var(--line)}
+.abody{font-size:17.5px;line-height:1.85;color:#222;margin-top:24px;letter-spacing:-.4px}
+.abody p{margin:0 0 22px}
+.abody figure{margin:0 0 24px}
+.abody figcaption{font-size:13px;color:var(--meta);margin-top:8px}
+.article aside .src-card{border-top:1px solid var(--line);padding:14px 0}
+@media (max-width:900px){
+  .s1-hero,.s2-body,.s3-body,.saas,.prods,.s7top,.deskbody,.article,.lead-item{grid-template-columns:1fr}
+  .s2-body{height:auto}.s2-mapbox{height:460px}
+  .ticker,.k4,.steps,.tiers{grid-template-columns:1fr 1fr}
+  .gnb{gap:14px;font-size:13px;flex-wrap:wrap}
+}
+</style>
+</head>
+<body>
+
+<div class="deck">
+  <span style="color:#f5c26b;font-size:12px;margin-right:8px">제안용 시안 · 한국경제 공식 서비스 아님</span><div class="ttl">한경 집코노미 × 리치고 · AI 단지지도<small>화면 시안 v0.2 · 2026-10-14 · 한경 디자인 이식</small></div>
+  <button class="tab" data-s="s1">① 집코노미 메인</button>
+  <button class="tab" data-s="s2">② AI 단지지도</button>
+  <button class="tab" data-s="s3">③ 단지 AI 페이지</button>
+  <button class="tab" data-s="s4">④ 모바일·AI 상담</button>
+  <button class="tab" data-s="s5">⑤ 중개사 센터</button>
+  <button class="tab" data-s="s6">⑥ 광고상품</button>
+  <button class="tab" data-s="s7">⑦ 현장 제보·뉴스PR</button>
+  <span class="sp"></span>
+  <label><input type="checkbox" id="annoT" checked> 기획 주석</label>
+  <a class="doc" href="plan.html">기획서 →</a>
+</div>
+
+<section class="screen" id="v-s1">
+  <div class="cap"><h2>① 집코노미 메인 — 동네뉴스맵에 '시세·AI 스코어' 레이어 추가</h2><p>hankyung.com/realestate 첫 화면 구조·디자인 그대로. 기사·사진은 오늘 실제 집코노미 게재분</p></div>
+  <div class="frame" id="s1frame"></div>
+  <div class="annos">
+    <div><b>1</b>GNB에 'AI 단지지도' 신설(기존 메뉴 순서·스타일 유지)</div>
+    <div><b>2</b>'현위치에서 재검색' 옆에 레이어 전환: 뉴스(기존) / 시세 / AI 스코어</div>
+    <div><b>3</b>동네뉴스맵 패널에 탭 추가: 동네뉴스(기존) / 단지 시세 / AI 중개사</div>
+    <div><b>4</b>마커 클릭 → 단지 미니카드(사진·KB 시세·AI Master) → 단지 AI 페이지</div>
+    <div><b>5</b>'집 100세 시대' 같은 연재 슬롯에 'AI 단지 리포트'·'동네 시장 리포트' 섹션 편성</div>
+  </div>
+</section>
+
+<section class="screen" id="v-s2">
+  <div class="cap"><h2>② AI 단지지도 (PC 전체 화면)</h2><p>마커를 눌러 보세요 — 왼쪽 단지 분석과 오른쪽 AI Master 칸이 바뀝니다</p></div>
+  <div class="frame" id="s2frame"></div>
+  <div class="annos">
+    <div><b>1</b>필터 + 'AI Master 있는 단지'(독자가 켤 때만 — 광고주 우대 노출 아님)</div>
+    <div><b>2</b>마커 = 단지명·KB 매매가·스코어 색. AI Master 계약 단지엔 중개사 얼굴</div>
+    <div><b>3</b>왼쪽 = 단지 사진·스코어 5축·AI 요약·KB 시세 → 단지 AI 페이지</div>
+    <div><b>4</b>오른쪽 = AI Master(판매됨) / 입찰중 / 모집중 — 독점 상품 상태가 지면에 그대로</div>
+  </div>
+</section>
+
+<section class="screen" id="v-s3">
+  <div class="cap"><h2>③ 단지 AI 페이지 — 헬리오시티</h2><p>한경 기사 페이지 문법(제목·사진·캡션·본문 폭)으로 구성. 숫자는 리치고 실데이터, 하단 뉴스는 실제 한경 기사</p></div>
+  <div class="frame" id="s3frame"></div>
+  <div class="annos">
+    <div><b>1</b>한경 기사 제목 영역 문법: 경로·큰 제목·메타·공유</div>
+    <div><b>2</b>대표 사진 + 캡션(사진=한경DB). 실서비스는 단지별 한경 사진DB/직접 촬영</div>
+    <div><b>3</b>한경 증시 시세판 형식의 핵심 숫자(▲빨강/▼파랑 = 한경 규칙)</div>
+    <div><b>4</b>AI 한줄 요약 — 단지위키 사실 근거, 출처 표기</div>
+    <div><b>5</b>실거래(국토부)·매물 호가 — 출처·기준일 표기</div>
+    <div><b>6</b>동네 시장 분위기 — 중개사 현장 제보(⑦과 연결)</div>
+    <div><b>7</b>한경 기사 자동 매칭 — '헬리오시티' 언급 실제 기사</div>
+    <div><b>8</b>AI Master 카드: '광고' 표기 + 공인중개사법 필수 표시사항</div>
+    <div><b>9</b>하단 고정 상담 바 — 리드 발생 지점</div>
+  </div>
+</section>
+
+<section class="screen" id="v-s4">
+  <div class="cap"><h2>④ 모바일 — 단지 홈 · AI 상담에서 중개사 연결까지</h2><p>오른쪽 화면 아래 질문 버튼을 눌러 보세요</p></div>
+  <div class="phones" id="phones"></div>
+  <div class="annos">
+    <div><b>1</b>모바일 단지 홈: 사진 → 핵심 숫자 → 시장 정보 → AI Master → 한경 뉴스</div>
+    <div><b>2</b>하단 2버튼 고정: 'AI에게 질문' / 'AI Master 상담'(광고)</div>
+    <div><b>3</b>AI는 데이터만 답함. '사도 되나요?'는 숫자만 보여주고 사람에게 넘김</div>
+    <div><b>4</b>연결 전 개인정보 제3자 제공 동의 → 동의한 경우만 리드 생성</div>
+  </div>
+</section>
+
+<section class="screen" id="v-s5">
+  <div class="cap"><h2>⑤ 중개사 센터 (B2B) — AI Master 전용</h2><p>홍보물 버튼을 누르면 리치고 데이터로 만든 결과 예시가 열립니다</p></div>
+  <div class="frame" id="s5frame"></div>
+  <div class="annos">
+    <div><b>1</b>오늘의 리드 현황 — 단지 페이지·지도·AI 상담·기사에서 들어온 상담</div>
+    <div><b>2</b>독점 단지 성과 → 재계약 판단(갱신 우선권)</div>
+    <div><b>3</b>원클릭 홍보물: 단지 리포트·숏폼 대본·블로그·문자</div>
+    <div><b>4</b>리드 개인정보 마스킹, 상담 결과 입력(전환율 집계)</div>
+    <div><b>5</b>현장 제보 성과 — 인용된 한경 기사를 카톡·블로그·명함 QR로 공유</div>
+  </div>
+</section>
+
+<section class="screen" id="v-s6">
+  <div class="cap"><h2>⑥ 중개사 입점·광고상품 안내</h2><p>가격·자격은 협의 전 가설</p></div>
+  <div class="frame" id="s6frame"></div>
+  <div class="annos">
+    <div><b>1</b>핵심 상품 = 단지 독점(단지당 1명). 대단지는 공개 입찰</div>
+    <div><b>2</b>세대수 등급 단가(가설) + 상담 건당 과금 옵션</div>
+    <div><b>3</b>단지별 자리 현황 공개 — 판매완료 단지는 대기 신청</div>
+  </div>
+</section>
+
+<section class="screen" id="v-s7">
+  <div class="cap"><h2>⑦ 현장 제보 → 동네 기사 → 중개사 뉴스 PR</h2><p>중개사 제보를 편집국이 동네별로 모아 기사화, 기사에 사무소명·이름이 실림</p></div>
+  <div id="s7wrap"></div>
+  <div class="annos">
+    <div><b>1</b>중개사 제보 화면: 동·호수 칸 없음, 실명 게재·당사자 동의 체크</div>
+    <div><b>2</b>편집국 제보 데스크: 읍면동별 모임 정도, 기준 넘으면 '기사화 가능'</div>
+    <div><b>3</b>계약 제보는 국토부 실거래 신고와 자동 대조(실데이터 3건 일치). 신고 없으면 제외·감점</div>
+    <div><b>4</b>AI 초안 → 기자 취재·검수 → 발행. 편집권은 한경</div>
+    <div><b>5</b>발행 기사(한경 기사 페이지 그대로): 본문에 사무소명+이름+인용 = 중개사 PR</div>
+    <div><b>6</b>취재원 카드. 상담 버튼은 AI Master(광고)에게만, 기사 인용과 분리</div>
+  </div>
+</section>
+
+<div class="modal" id="modal"><div class="mbox" id="modalBox"></div></div>
+
+<script>
+const {MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, FACE, won, manwon, scoreClass, byId} = HK;
+const N = window.HK_NEWS;
+const $ = s => document.querySelector(s);
+const nm = d => d.short || d.name;
+const pct = v => v == null ? '-' : (v > 0 ? '+' : '') + v.toFixed(1) + '%';
+const arrow = v => v == null ? '' : v > 0 ? '▲' : v < 0 ? '▼' : '–';
+const cls = v => v > 0 ? 'up' : v < 0 ? 'down' : 'flat';
+const face = (k, size, extra = '') => `<img class="face" src="${FACE[k] || FACE['김OO']}" style="width:${size}px;height:${size}px;${extra}" alt="">`;
+const masterOf = d => d.master && d.master.status === 'sold' ? d.master : null;
+const rankOf = d => [...DANJI].filter(x => x.score != null).sort((a, b) => b.score - a.score).findIndex(x => x.id === d.id) + 1;
+
+const IC = {
+  menu: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  search: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
+  share: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>',
+  mark: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+  font: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6"><path d="M4 20 10 4l6 16M6.5 14h7M17 20l2.5-7 2.5 7M18 18h3"/></svg>'
+};
+function hkHeader(active, anno = false) {
+  const items = ['시장동향', '부동산 정책', '분양·경매', '투자상품', '동네뉴스맵', '|', 'AI 단지지도', '밸류업센터', '매물정보', '매물관리센터', '집코노미 TV'];
+  return `<div class="hk-head"><div class="wrap">
+    <div class="top">${IC.menu}${IC.search}<img class="logo-hk" src="img/logo-hk-short.svg" alt="한경"><div class="r"><span>신문 구독</span><span>한경 프리미엄9 구독</span><span>로그인</span></div></div>
+    <div class="logo-zip"><img src="img/logo-jipconomy.svg" alt="집코노미"></div></div>
+    <div class="gnb">${items.map(t => t === '|' ? '<span class="bar"></span>' : `<span class="${t === 'AI 단지지도' ? 'new' : ''}" ${t === active ? 'style="color:var(--blue);font-weight:700"' : ''}>${t}</span>`).join('')}
+    ${anno ? '<i class="an" data-n="1" style="left:calc(50% + 100px);top:4px"></i>' : ''}</div></div>`;
+}
+function newsItem(a, size = '') {
+  return `<a class="nitem ${size}" href="${a.url}" target="_blank"><div style="flex:1;min-width:0"><div class="t">${a.title}</div>${a.date ? `<div class="date">${a.date}</div>` : ''}</div><div class="thumb"><img class="ph" src="${a.img}" alt=""></div></a>`;
+}
+function aiSummary(d) {
+  if (d.newBuild) return `${d.name}은 2026년 1월 입주한 신축 단지예요. 거래가 쌓이기 전이라 시세·스코어는 아직 산정하지 않았어요.`;
+  const t = [`${d.name}은 ${d.hh.toLocaleString()}세대 ${d.kw.includes('재건축') ? '재건축 추진 ' : ''}단지로, ${d.py}평 KB 시세는 ${won(d.kbM)}이에요.`,
+    `최근 1년 ${pct(d.chg1y)}, 2년 ${pct(d.chg2y)} 움직였고 전세가율은 ${d.jr}%예요.`];
+  if (d.gnG >= 4) t.push(`주변 호재 등급이 높은 편(5단계 중 ${d.gnG})이에요.`);
+  return t.join(' ');
+}
+
+/* 차트 */
+function spark(arr, color, w = 120, h = 34) {
+  if (!arr) return '';
+  const mn = Math.min(...arr), mx = Math.max(...arr), r = mx - mn || 1;
+  const pts = arr.map((v, i) => `${(i / (arr.length - 1) * w).toFixed(1)},${(h - 3 - (v - mn) / r * (h - 6)).toFixed(1)}`).join(' ');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
+}
+function lineChart(series, labels, w = 760, h = 240) {
+  const all = series.flatMap(s => s.data), st = Math.max(...all) - Math.min(...all) > 150 ? 50 : 20;
+  const mn = Math.floor(Math.min(...all) / st) * st, mx = Math.ceil(Math.max(...all) / st) * st;
+  const L = 46, R = 12, T = 14, B = 26, iw = w - L - R, ih = h - T - B;
+  const x = i => L + i / (labels.length - 1) * iw, y = v => T + ih - (v - mn) / (mx - mn) * ih;
+  let g = '';
+  for (let v = mn; v <= mx; v += st) g += `<line x1="${L}" x2="${w - R}" y1="${y(v)}" y2="${y(v)}" stroke="#eee"/><text x="${L - 8}" y="${y(v) + 4}" font-size="11" fill="#888" text-anchor="end">${v / 10}억</text>`;
+  labels.forEach((l, i) => { if (i % 6 === 0 || i === labels.length - 1) g += `<text x="${x(i)}" y="${h - 6}" font-size="11" fill="#888" text-anchor="middle">${l}</text>`; });
+  series.forEach(s => {
+    g += `<polyline points="${s.data.map((v, i) => `${x(i)},${y(v)}`).join(' ')}" fill="none" stroke="${s.color}" stroke-width="2.2" stroke-linejoin="round"/>`;
+    const li = s.data.length - 1;
+    g += `<circle cx="${x(li)}" cy="${y(s.data[li])}" r="3.5" fill="${s.color}"/><text x="${x(li) - 6}" y="${y(s.data[li]) - 9}" font-size="12" font-weight="700" fill="${s.color}" text-anchor="end">${(s.data[li] / 10).toFixed(1)}억</text>`;
+  });
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block">${g}</svg>`;
+}
+function radar(ax, size = 150, color = '#0d79c7', label = true, grid = '#ddd', txt = '#585858') {
+  const keys = [['live', '생활'], ['trend', '시세흐름'], ['goodnews', '호재'], ['activity', '거래활력'], ['stable', '전세안정']];
+  const c = size / 2, R = size / 2 - (label ? 36 : 6);
+  const pt = (i, r) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; return [c + Math.cos(a) * r, c + Math.sin(a) * r]; };
+  let g = '';
+  [1, .66, .33].forEach(k => g += `<polygon points="${keys.map((_, i) => pt(i, R * k).join(',')).join(' ')}" fill="none" stroke="${grid}"/>`);
+  g += `<polygon points="${keys.map((kk, i) => pt(i, R * ax[kk[0]] / 100).join(',')).join(' ')}" fill="${color}" fill-opacity=".22" stroke="${color}" stroke-width="2"/>`;
+  if (label) keys.forEach((kk, i) => { const [px, py] = pt(i, R + 15); g += `<text x="${px}" y="${py + 4}" font-size="10.5" fill="${txt}" text-anchor="middle">${kk[1]} ${ax[kk[0]]}</text>`; });
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${g}</svg>`;
+}
+
+/* 지도 공통 */
+const newsCount = d => (d.hh % 17) + (d.gnG * 3);
+function pinHtml(d, mode, sel) {
+  const m = masterOf(d), sc = `<span class="sc ${scoreClass(d.score)}">${d.score ?? '–'}</span>`;
+  const body = mode === 'news' ? `<b>${nm(d)}</b><span class="nb">기사 ${newsCount(d)}</span>` : mode === 'score' ? `${sc}<b>${nm(d)}</b>` : `${sc}<b>${nm(d)}</b><em>${d.kbM ? won(d.kbM) : '신축'}</em>`;
+  return `<div class="pin ${sel ? 'sel' : ''}">${m ? face(m.name, 22, '').replace('class="face"', 'class="face mav"') : ''}${body}</div>`;
+}
+function makeMap(el, zoomPos = 'bottomright') {
+  const map = L.map(el, {zoomControl: false, scrollWheelZoom: false, zoomSnap: .25}).setView([37.505, 127.1], 13);
+  L.control.zoom({position: zoomPos}).addTo(map);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
+  return map;
+}
+
+/* ═════ S1 집코노미 메인 ═════ */
+let map1, s1layer = 'price', s1markers = [], s1tab = 'news';
+const NEWS_AREAS = [[37.5665, 126.978, 380], [37.48, 127.03, 227], [37.53, 127.13, 48], [37.47, 126.89, 77], [37.55, 126.86, 34], [37.60, 127.06, 15], [37.45, 127.15, 28], [37.52, 127.06, 24]];
+function renderS1() {
+  const helio = byId('a1zUerj'), top3 = [...DANJI].filter(d => d.ms).sort((a, b) => b.score - a.score).slice(0, 3);
+  const sec = N.sec;
+  $('#s1frame').innerHTML = hkHeader('', true) + `
+  <div class="wrap">
+    <div class="s1-hero" style="margin-top:0">
+      <div class="s1-mapwrap">
+        <div class="s1-map" id="map1"></div>
+        <div class="s1-panel">
+          <div class="ph-head"><b>동네뉴스맵 ›</b><span class="sel">전체 <span>⌄</span></span></div>
+          <div class="s1-tabs"><button data-t="news" class="on">동네뉴스</button><button data-t="price">단지 시세</button><button data-t="master">AI 중개사</button></div>
+          <div class="s1-list" id="s1list"></div>
+        </div>
+        <div class="s1-top"><span class="s1-research">⟳ 현위치에서 재검색</span><div class="s1-layer"><button data-l="news">뉴스</button><button data-l="price" class="on">시세</button><button data-l="score">AI 스코어</button></div></div>
+        <div class="s1-mini" id="s1mini"></div>
+        <i class="an" data-n="2" style="left:calc(50% + 150px);top:6px"></i>
+        <i class="an" data-n="3" style="left:250px;top:58px"></i>
+        <i class="an" data-n="4" style="right:12px;top:60px"></i>
+      </div>
+      <div class="s1-side">
+        <div class="s1-tv"><img class="ph" src="${N.tv[0].img}" alt=""><div class="cap2">집코노미 TV</div><div class="yt">▶</div></div>
+        <div class="s1-pick"><h4>집코노미 PICK!</h4>
+          ${N.pick.map(a => `<a class="it" href="${a.url}" target="_blank"><div class="th"><img class="ph" src="${a.img}" alt=""></div><div>${a.title}</div></a>`).join('')}</div>
+      </div>
+    </div>
+
+    <div class="s1-search"><b style="font-size:15px;white-space:nowrap">우리 단지, AI는 어떻게 볼까</b><div class="in"><span>단지명·지역명 검색 (예: 헬리오시티)</span><span>⌕</span></div><a href="#s3" class="btn black">단지 AI 페이지</a></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px;position:relative">
+      <i class="an" data-n="5" style="left:-12px;top:-10px"></i>
+      <div>
+        <div class="sec-tit">AI 단지 리포트 <span class="pill">전체보기 ›</span><span class="sub">리치고 데이터로 매일 갱신</span></div>
+        <a class="lead-item" href="#s3" style="grid-template-columns:240px 1fr"><div style="height:150px;overflow:hidden"><img class="ph" src="${helio.photo}" alt=""></div>
+          <div><div class="ntag"><span class="b ai">AI 단지분석</span><span class="c bl">송파구 가락동</span></div>
+          <div class="t" style="font-size:21px">헬리오시티 1년 보합 속 전세가율 ${helio.jr}%…3개월 실거래 ${helio.trades3m}건</div>
+          <div class="s">9,510세대 헬리오시티 33평 KB 시세는 ${won(helio.kbM)}로 1년 전과 비슷하지만 2년 전보다 ${helio.chg2y}% 올랐다. 전세는 ${won(helio.kbJ)}…</div>
+          <div class="date">2026.10.14 06:00</div></div></a>
+        ${top3.map(d => `<a class="nitem sm" href="#s2"><div style="flex:1"><div class="ntag" style="margin-bottom:2px"><span class="b ai">AI</span><span class="c bl">${d.dong}</span></div><div class="t">${d.name} H-AI 스코어 ${d.score}…2년 ${pct(d.chg2y)}, 전세가율 ${d.jr}%</div></div><div class="thumb"><img class="ph" src="${d.photo}" alt=""></div></a>`).join('')}
+      </div>
+      <div>
+        <div class="sec-tit">동네 시장 리포트 <span class="pill">현장 제보 ›</span><span class="sub">중개사 제보로 쓰는 우리 동네 기사</span></div>
+        <a class="lead-item" href="#s7" style="grid-template-columns:240px 1fr"><div style="height:150px;overflow:hidden"><img class="ph" src="img/r_ssangyong.jpg" alt=""></div>
+          <div><div class="ntag"><span class="b">현장 제보</span><span class="c">송파구 가락동</span></div>
+          <div class="t" style="font-size:21px">추석 지나자 가락동 '국평' 문의 늘었다…헬리오시티 30억대 거래 이어져</div>
+          <div class="s">송파구 가락동 대단지에서 추석 이후 매수 문의가 늘고 있다. 현장 중개사 4명의 제보와 국토부 실거래 신고를 종합하면…</div>
+          <div class="date">2026.10.14 11:00 · 예시 기사</div></div></a>
+        ${N.garak.slice(0, 2).map(a => newsItem(a, 'sm')).join('')}
+        ${newsItem(N.jamsil[0], 'sm')}
+      </div>
+    </div>
+
+    <hr class="divider">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:34px;padding-bottom:40px">
+      ${[['시장동향', [sec[2], N.pick[1], N.pick[2]]], ['부동산 정책', [sec[1], sec[3], sec[4]]], ['분양·경매', [sec[5], sec[6], sec[7]]]].map(([t, arr]) =>
+        `<div><div class="sec-tit">${t} <span class="chev">›</span></div>${arr.map(a => newsItem(a, 'sm')).join('')}</div>`).join('')}
+    </div>
+  </div>`;
+  document.querySelectorAll('.s1-layer button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.s1-layer button').forEach(x => x.classList.toggle('on', x === b)); s1layer = b.dataset.l; drawS1();
+  });
+  document.querySelectorAll('.s1-tabs button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.s1-tabs button').forEach(x => x.classList.toggle('on', x === b)); s1tab = b.dataset.t; listS1();
+  });
+  listS1();
+}
+function initS1() {
+  if (map1) { map1.invalidateSize(); return; }
+  map1 = makeMap('map1');
+  map1.fitBounds(DANJI.map(d => [d.lat, d.lng]), {paddingTopLeft: [330, 80], paddingBottomRight: [30, 30]});
+  drawS1();
+}
+function drawS1() {
+  s1markers.forEach(m => m.remove()); s1markers = [];
+  if (s1layer === 'news') NEWS_AREAS.forEach(([la, ln, n]) => s1markers.push(L.marker([la, ln], {icon: L.divIcon({className: '', html: `<div class="newsc"><small>NEWS</small><b>${n}</b></div>`})}).addTo(map1)));
+  DANJI.forEach(d => {
+    const mk = L.marker([d.lat, d.lng], {icon: L.divIcon({className: '', html: pinHtml(d, s1layer)})}).addTo(map1);
+    mk.on('click', () => showMini(d)); s1markers.push(mk);
+  });
+}
+function showMini(d) {
+  const m = masterOf(d), el = $('#s1mini');
+  el.style.display = 'block';
+  el.innerHTML = `<div style="height:110px;overflow:hidden;position:relative"><img class="ph" src="${d.photo}" alt=""><span class="sc ${scoreClass(d.score)}" style="position:absolute;left:0;top:0;height:24px;font-size:13px">${d.score ?? '–'}</span></div>
+   <div style="padding:12px 14px"><b style="font-size:16px">${d.name}</b><div class="note">${d.dong} · ${d.hh.toLocaleString()}세대 · ${d.built}</div>
+   <div style="display:flex;gap:18px;margin:10px 0"><div><div class="note">KB 매매 ${d.py}평</div><b style="font-size:18px" class="num">${won(d.kbM)}</b></div><div><div class="note">1년</div><b style="font-size:18px" class="num ${cls(d.chg1y)}">${arrow(d.chg1y)} ${d.chg1y != null ? Math.abs(d.chg1y).toFixed(1) + '%' : '-'}</b></div></div>
+   ${m ? `<div style="display:flex;gap:8px;align-items:center;border-top:1px solid var(--line3);padding-top:8px;font-size:12.5px">${face(m.name, 30)}<div><span class="mbadge">AI Master</span> ${m.name} 대표 <span class="ad">광고</span><div class="note">${m.office}</div></div></div>` : ''}
+   <a href="#s3" class="btn black" style="width:100%;margin-top:10px;padding:9px">단지 AI 페이지 →</a></div>`;
+}
+function listS1() {
+  const el = $('#s1list');
+  if (s1tab === 'news') {
+    el.innerHTML = [...N.pick, ...N.helio.slice(0, 2), ...N.garak.slice(0, 2)].map(a => `<a class="s1-row" href="${a.url}" target="_blank"><div class="th"><img class="ph" src="${a.img}" alt=""></div><div class="t">${a.title}</div></a>`).join('');
+  } else if (s1tab === 'master') {
+    el.innerHTML = `<div class="note" style="padding:8px 0 2px">단지별 AI Master <span class="ad">광고</span></div>` + DANJI.filter(masterOf).map(d => { const m = d.master; return `<div class="s1-row">${face(m.name, 44)}<div style="flex:1"><div style="font-weight:700;font-size:14px">${m.name} 대표 <span class="mbadge">AI Master</span></div><div class="note">${d.name} 전담 · 거래 ${m.deals}건 · ★${m.rating}</div></div></div>`; }).join('');
+  } else {
+    el.innerHTML = [...DANJI].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).map(d => `<div class="s1-row" data-id="${d.id}"><div class="th" style="width:56px;height:42px;position:relative"><img class="ph" src="${d.photo}" alt=""></div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${d.name}</div><div class="note">${d.dong} · <span class="sc ${scoreClass(d.score)}" style="height:16px;font-size:10.5px">${d.score ?? '–'}</span></div></div><div style="text-align:right"><b class="num">${won(d.kbM)}</b><div class="note num ${cls(d.chg1y)}">${d.chg1y != null ? arrow(d.chg1y) + ' ' + Math.abs(d.chg1y).toFixed(1) + '%' : ''}</div></div></div>`).join('');
+    el.querySelectorAll('.s1-row').forEach(r => r.onclick = () => { const d = byId(r.dataset.id); map1.panTo([d.lat, d.lng]); showMini(d); });
+  }
+}
+
+/* ═════ S2 AI 단지지도 ═════ */
+let map2, s2sel = 'a1zUerj', s2markers = [];
+function renderS2() {
+  $('#s2frame').innerHTML = `
+  <div class="s2-head"><div class="lg"><img class="logo-hk" src="img/logo-hk-short.svg" alt=""><img class="logo-zip" src="img/logo-jipconomy.svg" alt=""><span class="tt">AI 단지지도</span></div>
+    <div class="srch"><span>단지명, 지역명, 학교명 검색</span>⌕</div>
+    <div class="menu"><span class="on">아파트</span><span>분양</span><span>경매</span><span>재건축·리모델링</span><span>AI 중개사</span></div>
+    <span style="margin-left:auto;font-size:13px">관심단지 · 로그인</span></div>
+  <div class="s2-filter" style="position:relative"><span class="chip on">매매</span><span class="chip">전세</span><span class="chip">가격대 ⌄</span><span class="chip">평형 ⌄</span><span class="chip">입주연차 ⌄</span><span class="chip">세대수 ⌄</span><span class="chip">AI 스코어 80+ ⌄</span><span class="chip">재건축·리모델링</span><span class="chip" style="border-color:var(--navy);color:var(--navy);font-weight:700">AI Master 있는 단지</span><i class="an" data-n="1" style="right:14px;top:10px"></i></div>
+  <div class="s2-body">
+    <div class="s2-left" id="s2left"></div>
+    <div class="s2-mapbox"><div class="s2-map" id="map2"></div>
+      <div class="s2-legend"><b>AI 스코어</b><div><i class="s90"></i>90 이상</div><div><i class="s80"></i>80~89</div><div><i class="s70"></i>70~79</div><div><i class="s60"></i>60~69</div><div><i class="sx"></i>산정 전</div></div>
+      <div class="s2-ask"><span>이 지역에 대해 AI에게 물어보세요 — "잠실 33평 15억 이하 전세?"</span><button class="btn black">AI에게 질문</button></div>
+      <i class="an" data-n="2" style="left:56px;top:12px"></i></div>
+    <div class="s2-right" id="s2right"></div>
+  </div>`;
+}
+function initS2() {
+  if (map2) { map2.invalidateSize(); return; }
+  map2 = makeMap('map2', 'topleft');
+  map2.fitBounds(DANJI.map(d => [d.lat, d.lng]), {padding: [70, 70]});
+  drawS2(); panelS2();
+}
+function drawS2() {
+  s2markers.forEach(m => m.remove()); s2markers = [];
+  DANJI.forEach(d => {
+    const mk = L.marker([d.lat, d.lng], {icon: L.divIcon({className: '', html: pinHtml(d, 'price', d.id === s2sel)}), zIndexOffset: d.id === s2sel ? 1000 : 0}).addTo(map2);
+    mk.on('click', () => { s2sel = d.id; drawS2(); panelS2(); }); s2markers.push(mk);
+  });
+}
+function panelS2() {
+  const d = byId(s2sel), m = masterOf(d);
+  $('#s2left').innerHTML = `<div style="height:180px;overflow:hidden;position:relative"><img class="ph" src="${d.photo}" alt=""><span style="position:absolute;left:0;right:0;bottom:0;padding:14px 10px 5px;font-size:11px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6))">${d.photoCap}</span></div>
+    <div style="padding:16px 18px;position:relative"><i class="an" data-n="3" style="right:10px;top:10px"></i>
+    <div class="note">서울 송파구 ${d.dong} · 아파트</div>
+    <div style="font-size:24px;font-weight:700;letter-spacing:-.8px;margin:2px 0 6px">${d.name}</div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px">${d.kw.map(k => `<span class="chip" style="padding:2px 8px;font-size:12px">${k}</span>`).join('')}</div>
+    ${d.axes ? `<div class="scorebox"><div><div class="note">H-AI 스코어</div><div class="n">${d.score}<small>/100</small></div><div class="note" style="margin-top:6px">시안 10개 단지 중 ${rankOf(d)}위</div></div><div style="margin-left:auto">${radar(d.axes, 168)}</div></div>`
+      : `<div class="scorebox"><div><div class="note">H-AI 스코어</div><div class="n" style="font-size:24px;letter-spacing:-.5px">산정 전</div><div class="note" style="margin-top:6px">신축 · 실거래 누적 후 산정</div></div></div>`}
+    <div class="aisum"><div class="h">AI 한줄 요약</div>${aiSummary(d)}</div>
+    <div class="kv" style="margin-top:14px"><div><div class="l">KB 매매 (${d.py}평)</div><div class="v num">${won(d.kbM)}</div></div><div><div class="l">KB 전세</div><div class="v num">${won(d.kbJ)}</div></div>
+      <div><div class="l">전세가율</div><div class="v num">${d.jr ?? '-'}${d.jr ? '%' : ''}</div></div><div><div class="l">최근 3개월 실거래</div><div class="v num">${d.trades3m ?? '-'}${d.trades3m != null ? '건' : ''}</div></div></div>
+    ${d.ms ? `<div style="border:1px solid var(--line);padding:10px 12px;margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:13px"><b>시세 흐름 (2년)</b><b class="num ${cls(d.chg2y)}">${arrow(d.chg2y)} ${Math.abs(d.chg2y).toFixed(1)}%</b></div>${spark(d.ms, '#0d79c7', 300, 54)}<div class="src" style="margin-top:2px">리치고 시세 · 2024.10~2026.10</div></div>` : ''}
+    <a href="#s3" class="btn black" style="width:100%;margin-top:14px">단지 AI 페이지 자세히 보기</a>
+    <div class="src">출처: KB부동산 시세(2026.10.01) · 국토교통부 실거래 · 리치고</div></div>`;
+  let mh;
+  if (m) mh = `<div class="mcard"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="mbadge">AI Master</span><span class="ad">광고</span></div>
+      <div class="row">${face(m.name, 64)}<div><b style="font-size:17px">${m.name} 대표</b><div class="note">${m.office}</div><div style="font-size:12.5px;margin-top:2px">${d.name} 전담 · 거래 ${m.deals}건 · ★ ${m.rating}</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:12px"><button class="btn line" style="padding:8px 0;font-size:12.5px">전화</button><button class="btn line" style="padding:8px 0;font-size:12.5px">채팅</button><button class="btn line" style="padding:8px 0;font-size:12.5px">방문예약</button></div>
+      <button class="btn navy" style="width:100%;margin-top:6px">1:1 상담 신청</button><div class="note" style="margin-top:8px">등록번호 11710-2020-000XX · 송파구 (예시)</div></div>`;
+  else if (d.master.status === 'bidding') mh = `<div class="mcard" style="text-align:center"><span class="mbadge">AI Master</span><div style="font-size:15px;font-weight:700;margin:10px 0 4px">${d.name} AI Master 입찰 진행중</div><div class="note">${d.master.bids}개 사무소 참여 · 마감 ${d.master.endsIn}</div><a href="#s6" class="btn black" style="width:100%;margin-top:12px">입찰 참여하기</a></div>`;
+  else mh = `<div class="mcard" style="text-align:center;border-top-color:var(--line);border-style:dashed"><div style="font-size:15px;font-weight:700;margin:4px 0">이 단지 AI Master 모집중</div><div class="note">${d.name} 전담 중개사가 되어 보세요</div><a href="#s6" class="btn black" style="width:100%;margin-top:12px">중개사 입점 안내</a></div>`;
+  const lst = [['img/d_' + ['helio', 'els', 'trizium'][0] + '.jpg'], ['img/p_interior.jpg'], ['img/p_window.jpg']];
+  $('#s2right').innerHTML = `<div style="position:relative"><i class="an" data-n="4" style="right:-6px;top:-6px"></i><div class="box-tit">이 단지 AI 중개사</div>${mh}</div>
+    <div class="box-tit" style="margin-top:24px">매물 정보 <span class="more">전체보기 ›</span></div>
+    ${d.listing ? `<div style="border-top:2px solid var(--text);padding:10px 0;border-bottom:1px solid var(--line3)"><div class="note">매매 ${d.listing.py}평 · 현재 매물 ${d.listing.n}건</div><b style="font-size:18px" class="num">평균 호가 ${won(d.listing.avg)}</b><div class="note">${won(d.listing.min)} ~ ${won(d.listing.max)} · ${d.listing.date} 기준</div></div>` : ''}
+    ${[1, 2, 3].map(i => `<div class="listing"><div class="th"><img class="ph" src="${[d.photo, 'img/p_interior.jpg', 'img/p_window.jpg'][i - 1]}" alt=""></div><div style="font-size:13px"><b>${d.name} ${100 + i * 3}동</b><div style="color:var(--blue);font-weight:700" class="num">매매 ${d.kbM ? won(Math.round((d.kbM + (i - 2) * .6) * 10) / 10) : '-'}</div><div class="note">${d.py}평 · ${4 + i * 5}층 · 예시 매물</div></div></div>`).join('')}
+    <div class="note" style="margin-top:8px">AI Master 등록 매물 우선 + 매물관리센터 연동(협의)</div>`;
+}
+
+/* ═════ S3 단지 AI 페이지 ═════ */
+const CHECK = {ok: '<span class="ck ok">✓ 신고 확인</span>', wait: '<span class="ck wait">신고 대기 · 계약 3일차</span>', none: '<span class="ck none">✕ 신고 없음 · 기사 제외</span>', na: '<span class="ck na">현장 분위기</span>'};
+function renderS3() {
+  const d = byId('a1zUerj'), m = d.master;
+  const trades = HELIO_TRADES.map(t => `<tr><td class="num">${t[0].slice(5).replace('-', '.')}</td><td>${t[1]}평</td><td>${t[2]}층</td><td class="r num"><b>${manwon(t[3])}</b></td><td class="note">${t[4]}</td></tr>`).join('');
+  const cmp = DANJI.filter(x => x.ms).sort((a, b) => b.score - a.score).map(x =>
+    `<tr style="${x.id === d.id ? 'background:#f3f8fd;font-weight:700' : ''}"><td><div style="display:flex;gap:8px;align-items:center"><img src="${x.photo}" style="width:44px;height:30px;object-fit:cover">${x.name}</div></td><td><span class="sc ${scoreClass(x.score)}">${x.score}</span></td><td class="r num">${won(x.kbM)}</td><td class="r num ${cls(x.chg1y)}">${arrow(x.chg1y)} ${Math.abs(x.chg1y).toFixed(1)}%</td><td class="r num ${cls(x.chg2y)}">${arrow(x.chg2y)} ${Math.abs(x.chg2y).toFixed(1)}%</td><td class="r num">${x.jr}%</td></tr>`).join('');
+  const R = REPORTS.filter(r => r.check !== 'none'), up = R.filter(r => r.mood === 'up').length, same = R.filter(r => r.mood === 'same').length, tot = R.length;
+  const ranks = [...DANJI].filter(x => x.ms).sort((a, b) => b.trades3m - a.trades3m).slice(0, 5);
+  $('#s3frame').innerHTML = hkHeader('AI 단지지도') + `
+  <div class="wrap">
+    <div class="crumb">집코노미 › AI 단지지도 › 서울 송파구 › <b>헬리오시티</b></div>
+    <div class="dtitle" style="position:relative"><i class="an" data-n="1" style="left:-12px;top:0"></i>
+      <div><div class="ntag"><span class="b ai">AI 단지분석</span><span class="c bl">송파구 가락동</span></div><h1>${d.name}</h1>
+      <div class="meta">${d.hh.toLocaleString()}세대 · 84개 동 · ${d.built} 입주 · 세대당 주차 1.32대 · 지역난방 · 8호선 송파역 지하 연결</div></div>
+      <div class="tools"><span>${IC.font}</span><span>${IC.mark}</span><span>${IC.share}</span></div></div>
+    <div class="s3-body">
+      <div>
+        <figure class="hero" style="margin:0;position:relative"><i class="an" data-n="2" style="left:-12px;top:-10px"></i><div class="img"><img class="ph" src="${d.photo}" alt=""></div><figcaption>${d.photoCap}</figcaption></figure>
+        <div class="ticker" style="position:relative"><i class="an" data-n="3" style="right:-12px;top:-12px"></i>
+          <div><div class="l">KB 매매 33평</div><div class="v">${won(d.kbM)}</div><div class="s note">2026.10.01</div></div>
+          <div><div class="l">KB 전세 33평</div><div class="v">${won(d.kbJ)}</div><div class="s note">전세가율 ${d.jr}%</div></div>
+          <div><div class="l">1년 변동</div><div class="v ${cls(d.chg1y)}">${arrow(d.chg1y)} ${Math.abs(d.chg1y).toFixed(1)}%</div><div class="s note">리치고 시세</div></div>
+          <div><div class="l">2년 변동</div><div class="v ${cls(d.chg2y)}">${arrow(d.chg2y)} ${Math.abs(d.chg2y).toFixed(1)}%</div><div class="s note">2024.10 대비</div></div>
+          <div><div class="l">실거래 3개월</div><div class="v">${d.trades3m}건</div><div class="s note">국토부 신고</div></div>
+        </div>
+        <div class="aisum" style="margin-top:22px;position:relative"><i class="an" data-n="4" style="right:-12px;top:-12px"></i><div class="h">AI 한줄 요약</div>8호선 송파역과 지하로 이어지고 단지 안에 초등학교 2곳·중학교 1곳이 있어 <b>통학·출퇴근이 편한 대단지</b>예요. 지상에 차가 없는 평지에 산책로가 있어 생활 만족도가 높아요. 다만 <b>층간소음과 어린이집 대기</b>는 입주민이 자주 꼽는 아쉬운 점이에요. 위례신사선 '탄천(헬리오시티)역'이 유력해 교통이 더 좋아질 가능성이 있어요.<div class="src">근거: 리치고 단지위키 사실 80여 건(교통·교육·소음·주변 개발 등), 2026.06 기준</div></div>
+
+        <div class="s3-sec"><div class="sec-tit">시세 추이 <span class="chev">›</span><span class="sub">33평 · <b style="color:var(--blue)">매매</b> / <b style="color:#888">전세</b></span></div>
+          ${lineChart([{data: d.ms, color: '#0d79c7'}, {data: d.js, color: '#999'}], MONTHS)}<div class="src">리치고 시세(월별) · KB 시세는 위 시세판 표기</div></div>
+
+        <div class="s3-sec" style="display:grid;grid-template-columns:1.5fr 1fr;gap:26px;position:relative"><i class="an" data-n="5" style="left:-12px;top:-10px"></i>
+          <div><div class="sec-tit">최근 실거래 <span class="chev">›</span><span class="sub">2026.07~10 · ${HELIO_TRADES.length}건</span></div>
+            <table class="tbl"><tr><th>계약일</th><th>평형</th><th>층</th><th class="r">거래가</th><th>유형</th></tr>${trades}</table><div class="src">국토교통부 실거래가 공개시스템 · 취소 신고 제외</div></div>
+          <div><div class="sec-tit">매물 호가 <span class="chev">›</span></div>
+            <div style="border-top:2px solid var(--text);padding:14px 0;border-bottom:1px solid var(--line)"><div class="note">매매 32평 · 매물 ${d.listing.n}건</div><div style="font-size:28px;font-weight:700;margin:2px 0" class="num">평균 ${won(d.listing.avg)}</div>
+              <div style="height:4px;background:var(--line3);position:relative;margin:14px 0 8px"><i style="position:absolute;left:0;width:${(d.listing.avg - d.listing.min) / (d.listing.max - d.listing.min) * 100}%;height:100%;background:var(--blue)"></i><i style="position:absolute;left:${(d.listing.avg - d.listing.min) / (d.listing.max - d.listing.min) * 100}%;top:-5px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--blue);transform:translateX(-50%)"></i></div>
+              <div style="display:flex;justify-content:space-between" class="note"><span>최저 ${won(d.listing.min)}</span><span>최고 ${won(d.listing.max)}</span></div></div><div class="src">${d.listing.date} 기준</div>
+            <div style="margin-top:18px"><img src="img/p_interior.jpg" style="width:100%;height:150px;object-fit:cover"><div class="note" style="margin-top:6px">AI Master 등록 매물 ${12}건 보기 ›</div></div></div>
+        </div>
+
+        <div class="s3-sec"><div class="sec-tit">입지·생활 <span class="chev">›</span><span class="sub">입주민·공공자료·기사에서 확인된 사실</span></div>
+          <div class="wiki">${HELIO_WIKI.map(w => `<div class="w"><b>${w.k}</b><span class="st ${w.st}">${w.st === 'warn' ? '주의' : w.st === 'up' ? '좋아지는 중' : '좋음'}</span><div style="margin-top:3px;color:#333">${w.t}</div></div>`).join('')}</div>
+          <div class="src">리치고 단지위키 18개 항목 중 발췌</div></div>
+
+        <div class="s3-sec"><div class="sec-tit">주변 단지 비교 <span class="chev">›</span></div>
+          <table class="tbl"><tr><th>단지</th><th>스코어</th><th class="r">KB 매매</th><th class="r">1년</th><th class="r">2년</th><th class="r">전세가율</th></tr>${cmp}</table></div>
+
+        <div class="s3-sec" style="position:relative"><i class="an" data-n="6" style="left:-12px;top:-10px"></i>
+          <div class="sec-tit">동네 시장 분위기 <span class="pill">현장 제보</span><span class="sub">가락동 중개사 제보 최근 6주 ${tot}건</span></div>
+          <div style="display:flex;height:8px;overflow:hidden"><i style="width:${up / tot * 100}%;background:var(--up)"></i><i style="width:${same / tot * 100}%;background:#c3c3c3"></i></div>
+          <div class="note" style="margin:6px 0 4px"><b class="up">오름·문의 증가 ${up}</b> · 비슷 ${same} · <b class="down">내림 0</b></div>
+          ${R.slice(0, 3).map(r => `<div class="nitem" style="align-items:center">${face(r.face || r.who, 46)}<div style="flex:1"><div style="font-size:15px">"${r.text}"</div><div class="note" style="margin-top:4px">${r.office} ${r.who} 대표${r.master ? ' <span class="mbadge">AI Master</span>' : ''} · ${r.at}</div></div>${CHECK[r.check]}</div>`).join('')}
+          <a href="#s7" class="btn line" style="width:100%;margin-top:8px">이 제보로 쓴 한경 기사 보기 ›</a></div>
+
+        <div class="s3-sec" style="position:relative"><i class="an" data-n="7" style="left:-12px;top:-10px"></i>
+          <div class="sec-tit">한경 뉴스 <span class="chev">›</span><span class="sub">'헬리오시티'가 나온 기사</span></div>
+          ${N.helio.map(a => newsItem(a)).join('')}</div>
+      </div>
+
+      <aside>
+        <div style="position:sticky;top:60px">
+          <div class="mcard" style="position:relative"><i class="an" data-n="8" style="right:-10px;top:-10px"></i>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="mbadge">AI Master · 헬리오시티 전담</span><span class="ad">광고</span></div>
+            <div class="row">${face(m.name, 72)}<div><b style="font-size:18px">${m.name} 대표</b><div class="note">${m.office}</div><div style="font-size:12.5px;margin-top:3px">거래 ${m.deals}건 · ★ ${m.rating} · 평균 응답 3분</div></div></div>
+            <div style="font-size:13.5px;color:var(--text2);margin:12px 0;line-height:1.6">"헬리오시티 매매·전월세, 동·라인별 뷰와 소음까지 솔직하게 알려드릴게요."</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px"><button class="btn line" style="padding:8px 0;font-size:12.5px">전화</button><button class="btn line" style="padding:8px 0;font-size:12.5px">채팅</button><button class="btn line" style="padding:8px 0;font-size:12.5px">방문예약</button></div>
+            <div class="legal">중개사무소 ${m.office} · 등록번호 11710-2020-000XX<br>대표 공인중개사 ${m.name} · 서울 송파구 송파대로 3XX · 02-4XX-XXXX<br>※ 예시 정보 · 공인중개사법 제18조의2 표시 항목</div></div>
+          <div class="box" style="margin-top:16px"><div class="box-tit">H-AI 스코어 <span class="more">산식 공개 ›</span></div>
+            <div style="display:flex;align-items:center"><div><div class="num" style="font-size:46px;font-weight:900;color:var(--blue);line-height:1">${d.score}</div><div class="note">시안 10단지 중 ${rankOf(d)}위</div></div><div style="margin-left:auto">${radar(d.axes, 170)}</div></div>
+            <div class="note" style="line-height:1.6">생활 35 · 시세흐름 25 · 호재 15 · 거래활력 15 · 전세안정 10 — 모두 실측값 기준, 투자 권유 아님</div></div>
+          <div class="box" style="margin-top:16px"><div class="box-tit">AI에게 물어보기</div><div style="border:2px solid #121212;padding:9px 12px;color:var(--meta);font-size:13.5px">이 단지에 대해 무엇이든 물어보세요</div>
+            <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:10px">${['33평 전세 시세는?', '해누리중 배정되나요?', '층간소음 심한가요?', '위례신사선 언제?'].map(q => `<span class="chip" style="font-size:12px;padding:3px 9px">${q}</span>`).join('')}</div></div>
+          <div class="box" style="margin-top:16px"><div class="box-tit">송파구 거래 많은 단지</div>
+            ${ranks.map((x, i) => `<div class="rank-item"><span class="no">${i + 1}</span><div class="th"><img class="ph" src="${x.photo}" alt=""></div><div style="flex:1;font-size:13.5px"><b>${x.name}</b><div class="note">3개월 ${x.trades3m}건 · ${won(x.kbM)}</div></div></div>`).join('')}</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+  <div class="s3-sticky"><div class="wrap" style="position:relative"><i class="an" data-n="9" style="left:0;top:-12px"></i>
+    <button class="btn line">♡ 관심단지</button>
+    <button class="btn black" style="flex:1;height:44px">AI에게 질문하기</button>
+    <button class="btn navy" style="flex:1;height:44px">${face(m.name, 26, 'border:1px solid #fff')} AI Master ${m.name} 대표 상담받기 <span class="ad" style="border-color:#5a6b96;color:#c9d3ea">광고</span></button></div></div>
+  <div class="wrap" style="display:flex;justify-content:space-between;padding:10px 20px 16px" ><span class="note">본 정보는 참고용이며 실제 거래 시 달라질 수 있습니다.</span><span class="note">데이터: KB부동산 · 국토교통부 실거래가 · 리치고</span></div>`;
+}
+
+/* ═════ S4 모바일 ═════ */
+function renderS4() {
+  const d = byId('a1zUerj'), m = d.master;
+  const mhead = t => `<div class="mhead">${IC.menu.replace('class="ic"', 'width="22" height="22"')}<img class="logo-zip" src="img/logo-jipconomy.svg" alt="">${t ? `<b style="font-size:15px">${t}</b>` : ''}<span style="margin-left:auto">${IC.search.replace('class="ic"', 'width="20" height="20"')}</span></div>`;
+  $('#phones').innerHTML = `
+  <div class="phone"><div class="scr"><div class="stat"><span>9:41</span><span>●●● ▮</span></div>${mhead('')}
+    <div class="body">
+      <div style="position:relative;height:210px"><img class="ph" src="${d.photo}" alt=""><div style="position:absolute;inset:0;background:linear-gradient(180deg,transparent 30%,rgba(0,0,0,.75))"></div>
+        <div style="position:absolute;left:16px;right:16px;bottom:14px;color:#fff"><div style="font-size:12px;opacity:.9">서울 송파구 가락동 · AI 단지분석</div><div style="font-size:28px;font-weight:700;letter-spacing:-1px">${d.name}</div><div style="font-size:12.5px;opacity:.9">${d.hh.toLocaleString()}세대 · ${d.built} 입주</div></div>
+        <div style="position:absolute;right:12px;top:12px;background:#fff;padding:6px 10px;text-align:center"><div style="font-size:10px;color:#888">H-AI</div><b class="num" style="font-size:22px;color:var(--blue)">${d.score}</b></div></div>
+      <div class="m-sec"><div style="font-size:12px;font-weight:700;color:var(--blue)">AI 한줄 요약</div><div style="font-size:14px;margin-top:4px;line-height:1.6">송파역 지하 연결·단지 안 초중학교로 생활이 편한 대단지. 층간소음·어린이집 대기는 주의 포인트예요.</div></div>
+      <div class="m-sec" style="padding:0"><div class="kv" style="border-top:0"><div><div class="l">KB 매매 33평</div><div class="v num">${won(d.kbM)}</div></div><div><div class="l">전세가율</div><div class="v num">${d.jr}%</div></div><div><div class="l">2년 변동</div><div class="v num up">▲ ${d.chg2y}%</div></div><div><div class="l">실거래 3개월</div><div class="v num">${d.trades3m}건</div></div></div></div>
+      <div class="m-sec"><b>실시간 시장 정보</b>
+        <div class="m-row"><span>최근 실거래 (32평)</span><b class="num">${manwon(HELIO_TRADES[0][3])}</b></div><div class="m-row"><span>매매 매물 (32평)</span><b>${d.listing.n}건</b></div><div class="m-row" style="border:0"><span>평균 호가</span><b class="num">${won(d.listing.avg)}</b></div></div>
+      <div class="m-sec"><div style="display:flex;justify-content:space-between"><b>AI Master 중개사</b><span class="ad">광고</span></div>
+        <div style="display:flex;gap:12px;align-items:center;margin-top:10px">${face(m.name, 54)}<div><b>${m.name} 대표</b> <span class="mbadge">AI Master</span><div class="note">헬리오시티 전담 · 거래 ${m.deals}건</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:12px"><button class="btn line" style="padding:7px 0;font-size:12.5px">전화</button><button class="btn line" style="padding:7px 0;font-size:12.5px">채팅</button><button class="btn line" style="padding:7px 0;font-size:12.5px">방문예약</button></div></div>
+      <div class="m-sec"><b style="color:var(--blue)">한경 뉴스 ›</b>${N.helio.slice(0, 2).map(a => `<div style="display:flex;gap:10px;margin-top:10px"><img src="${a.img}" style="width:80px;height:52px;object-fit:cover;flex:none"><div style="font-size:13.5px;line-height:1.4">${a.title}</div></div>`).join('')}</div>
+    </div>
+    <div class="cta"><button class="btn black">AI에게 질문</button><button class="btn navy">AI Master 상담</button></div></div></div>
+
+  <div class="phone"><div class="scr"><div class="stat"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="mhead"><span style="font-size:20px">‹</span><b>헬리오시티 AI 상담</b><span class="note" style="margin-left:auto">데이터 기준 10/14</span></div>
+    <div class="chat" id="chat"><div class="bub ai">안녕하세요! 헬리오시티에 대해 궁금한 걸 물어보세요. 시세·실거래·학교·생활 정보를 근거와 함께 알려드려요.</div></div>
+    <div class="qchips" id="qchips"></div></div></div>`;
+  const QA = [
+    ['33평 전세 얼마예요?', `33평 KB 전세 시세는 <b>${won(d.kbJ)}</b>예요(10/1 기준). 매매 ${won(d.kbM)} 대비 전세가율 <b>${d.jr}%</b>로, 2년 전(약 10.7억)보다 올랐어요.<div class="src">KB부동산 · 리치고 시세</div>`],
+    ['최근에 얼마에 팔렸어요?', `최근 3개월 실거래는 <b>${d.trades3m}건</b>이에요.<br>· 9/22 32평 9층 <b>30억 5,500</b><br>· 8/15 33평 35층 <b>29억</b><br>· 8/07 33평 15층 <b>31억</b><div class="src">국토부 실거래 · 취소 제외</div>`],
+    ['해누리중 배정돼요?', '1·3단지는 해누리중 배정 구역이에요. 해누리초·중 증축으로 입주민 자녀 전원 배정이 합의됐어요. 정확한 동별 배정은 교육청 공고로 확인하세요.<div class="src">리치고 단지위키 · 교육 항목</div>'],
+    ['지금 사도 될까요?', `구매 판단은 제가 대신 내려드릴 수 없어요. 참고할 숫자는 이래요.<br>· 1년 변동 <b>${pct(d.chg1y)}</b> · 2년 <b>${pct(d.chg2y)}</b><br>· 전세가율 <b>${d.jr}%</b><br>· 매물 ${d.listing.n}건, 호가 평균 ${won(d.listing.avg)}<br>동·층·자금 계획에 맞춘 판단은 단지 전담 중개사와 상담해 보세요.`, true]
+  ];
+  $('#qchips').innerHTML = QA.map((q, i) => `<button data-i="${i}">${q[0]}</button>`).join('');
+  $('#qchips').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const q = QA[b.dataset.i], c = $('#chat');
+    c.insertAdjacentHTML('beforeend', `<div class="bub me">${q[0]}</div><div class="bub ai">${q[1]}</div>`);
+    if (q[2]) c.insertAdjacentHTML('beforeend', `<div class="handoff"><div style="display:flex;justify-content:space-between;align-items:center"><div style="display:flex;gap:8px;align-items:center">${face(m.name, 34)}<b>AI Master ${m.name} 대표에게 연결할까요?</b></div><span class="ad">광고</span></div>
+      <div class="note" style="margin:6px 0 8px">${m.office} · 평균 응답 3분</div>
+      <label style="display:flex;gap:6px;font-size:12px;align-items:flex-start"><input type="checkbox" checked> <span>상담을 위해 이름·연락처·질문 내용을 위 중개사무소에 제공하는 데 동의합니다(필수)</span></label>
+      <button class="btn navy" style="width:100%;margin-top:8px;padding:8px" onclick="this.closest('.handoff').insertAdjacentHTML('afterend','<div class=\\'bub sys\\'>상담 신청 완료 · ${m.name} 대표가 곧 연락드려요</div>');this.disabled=true">동의하고 상담 신청</button></div>`);
+    c.scrollTop = c.scrollHeight;
+  });
+  $('#qchips button').click();
+}
+
+/* ═════ S5 중개사 센터 ═════ */
+function renderS5() {
+  const d = byId('a1zUerj'), m = d.master;
+  const leads = [['김*현', '010-****-21XX', 'A', '33평 매수 상담', '단지 AI 페이지', 'new', '10.14 09:12'], ['이*수', '010-****-88XX', 'A', '25평 전세 → 매수 갈아타기', 'AI 상담 연결', 'new', '10.14 08:40'],
+    ['박*영', '010-****-03XX', 'B', '42평 매도 문의', '지도 마커', 'ing', '10.13 21:05'], ['최*진', '010-****-57XX', 'B', '해누리중 배정 동 문의', 'AI 상담 연결', 'plan', '10.13 17:31'], ['정*호', '010-****-64XX', 'C', '33평 전세 시세 확인', '한경 기사', 'done', '10.12 11:20']];
+  const stMap = {new: ['new', '신규'], ing: ['ing', '상담중'], plan: ['plan', '방문예정'], done: ['done', '완료']};
+  const days = [42, 51, 38, 63, 70, 58, 66];
+  $('#s5frame').innerHTML = `<div class="saas">
+    <nav><div class="b"><img src="img/logo-jipconomy.svg" alt=""><div>중개사 센터</div></div>
+      <div style="display:flex;gap:10px;align-items:center;padding:4px 8px 16px">${face(m.name, 40, 'border:2px solid #fff')}<div style="font-size:12.5px;color:#fff"><b>${m.name} 대표</b><div style="color:#9fb0d6">AI Master · 헬리오시티</div></div></div>
+      <a class="on">대시보드</a><a>현장 제보 <span style="background:var(--red);color:#fff;font-size:9.5px;padding:0 4px;font-weight:700">NEW</span></a><a>리드 관리</a><a>고객 관리</a><a>내 단지 페이지</a><a>홍보물 제작</a><a>매물 등록</a><a>성과 분석</a><a>계약·결제</a><a>설정</a></nav>
+    <main>
+      <div style="display:flex;align-items:center;margin-bottom:16px"><h2 style="margin:0;font-size:22px;letter-spacing:-.8px">안녕하세요, ${m.name} 대표님</h2><span class="note" style="margin-left:10px">2026.10.14 (수)</span><button class="btn black" style="margin-left:auto">+ 매물 등록</button></div>
+      <div class="k4" style="position:relative"><i class="an" data-n="1" style="left:-10px;top:-10px"></i>
+        <div class="box"><div class="note">오늘 신규 리드</div><div class="v" style="color:var(--blue)">2</div><div class="note">이번 달 누적 31</div></div>
+        <div class="box"><div class="note">상담 진행중</div><div class="v">7</div><div class="note">방문 예정 2</div></div>
+        <div class="box"><div class="note">이번 달 계약 전환</div><div class="v">3</div><div class="note">전환율 9.7%</div></div>
+        <div class="box"><div class="note">내 단지 페이지 노출</div><div class="v">18.4K</div><div class="note">클릭 1,212 · 6.6%</div></div></div>
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:14px;margin-top:14px">
+        <div class="box" style="background:#fff;position:relative"><i class="an" data-n="4" style="right:-8px;top:-8px"></i><div class="box-tit">상담 신청(리드) <span class="more">전체 ›</span></div>
+          <table class="tbl" style="white-space:nowrap"><tr><th>고객</th><th>연락처</th><th>관심도</th><th>문의</th><th>유입</th><th>상태</th><th>신청</th></tr>
+          ${leads.map(l => `<tr><td><b>${l[0]}</b></td><td class="note num">${l[1]}</td><td><span class="sc ${l[2] === 'A' ? 's90' : l[2] === 'B' ? 's70' : 'sx'}">${l[2]}</span></td><td>${l[3]}</td><td class="note">${l[4]}</td><td><span class="lst ${stMap[l[5]][0]}">${stMap[l[5]][1]}</span></td><td class="note num">${l[6]}</td></tr>`).join('')}</table>
+          <div class="note" style="margin-top:8px">※ 예시 데이터 · 연락처는 고객 동의 후 공개, 상담 종료 90일 뒤 자동 파기</div></div>
+        <div class="box" style="background:#fff;position:relative;padding:0;overflow:hidden"><i class="an" data-n="2" style="right:-8px;top:-8px"></i>
+          <div style="height:110px;position:relative"><img class="ph" src="${d.photo}" alt=""><span class="lst ing" style="position:absolute;right:10px;top:10px">계약중</span></div>
+          <div style="padding:14px 16px"><b style="font-size:17px">내 독점 단지 · ${d.name}</b><div class="note">${d.hh.toLocaleString()}세대 · S등급 · 2026.10.01 ~ 2027.03.31 · 갱신 우선권</div>
+          <div class="note" style="margin-top:10px">최근 7일 단지 페이지 클릭</div>
+          <div style="display:flex;gap:6px;align-items:flex-end;height:80px;margin:6px 0">${days.map((v, i) => `<div style="flex:1;text-align:center"><div style="height:${v}px;background:${i === 6 ? 'var(--blue)' : '#b9d7ef'}"></div><div class="note" style="font-size:10px">${8 + i}일</div></div>`).join('')}</div>
+          <div class="kv" style="margin-top:8px"><div><div class="l">지도 노출</div><div class="v" style="font-size:16px">41.2K</div></div><div><div class="l">AI 상담 → 연결</div><div class="v" style="font-size:16px">12건</div></div></div></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+        <div class="box" style="background:#fff;position:relative"><i class="an" data-n="3" style="right:-8px;top:-8px"></i><div class="box-tit">원클릭 홍보물 만들기 <span class="more">리치고 데이터 자동 채움</span></div>
+          <div class="tools"><button data-tool="report"><b>단지 리포트 (PDF)</b>시세·실거래·입지 6쪽</button><button data-tool="short"><b>60초 숏폼 대본</b>릴스·쇼츠용 세로 영상</button><button data-tool="blog"><b>블로그 글</b>"이번 주 헬리오시티 시세"</button><button data-tool="sms"><b>고객 문자</b>관심 고객 시세 변동 알림</button></div></div>
+        <div class="box" style="background:#fff"><div class="box-tit">이번 주 단지 이슈 (AI 알림)</div>
+          <div style="font-size:13.5px;line-height:1.9">· 33평 실거래 <b>31억</b>(8/7, 15층) 이후 30억 안팎에서 거래<br>· 32평 매물 <b>${d.listing.n}건</b>, 호가 평균 ${won(d.listing.avg)} — KB 시세보다 약 0.3억 낮음<br>· 전세가율 <b>${d.jr}%</b>, 1년 새 KB 전세 상승세<br>· 위례신사선 관련 기사 3건 — 고객 문자 소재로 추천</div><div class="src">리치고 데이터 · 매주 월요일 자동 생성</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:14px;margin-top:14px">
+        <div class="box" style="background:#fff;position:relative"><i class="an" data-n="5" style="right:-8px;top:-8px"></i><div class="box-tit">내 현장 제보 <a href="#s7" class="more">제보하기 ›</a></div>
+          <div class="kv"><div><div class="l">이번 달 제보</div><div class="v">6건</div></div><div><div class="l">기사 인용</div><div class="v" style="color:var(--blue)">2건</div></div><div><div class="l">신고 일치</div><div class="v">11/12</div></div><div><div class="l">제보 신뢰도</div><div class="v">92</div></div></div>
+          <div class="note" style="margin-top:8px">신고 대기 1건 · 헬리오시티 33평 (10.11 계약)</div></div>
+        <div class="box" style="background:#fff"><div class="box-tit">내가 인용된 한경 기사 <span class="more">PR 성과</span></div>
+          <div class="nitem" style="padding-top:0"><div style="flex:1"><div class="t" style="font-size:15px">추석 지나자 가락동 '국평' 문의 늘었다…헬리오시티 30억대 거래 이어져</div><div class="note" style="margin-top:4px">10.14 · 조회 1만2,400 · 내 카드 클릭 318 · 상담 신청 6</div>
+            <div style="display:flex;gap:4px;margin-top:8px"><button class="btn line" style="padding:5px 10px;font-size:12px">카카오톡 공유</button><button class="btn line" style="padding:5px 10px;font-size:12px">블로그에 붙이기</button><button class="btn line" style="padding:5px 10px;font-size:12px">명함·전단 QR</button></div></div><div class="thumb" style="width:110px;height:72px"><img class="ph" src="img/r_ssangyong.jpg" alt=""></div></div>
+          <div class="nitem"><div style="flex:1"><div class="t" style="font-size:15px">송파 대단지 전세 매물 '가뭄'…갱신 계약 늘어 (예시)</div><div class="note" style="margin-top:4px">09.24 · 조회 8,900 · 내 카드 클릭 204 · 상담 신청 3</div></div><div class="thumb" style="width:110px;height:72px"><img class="ph" src="img/p_window.jpg" alt=""></div></div></div>
+      </div>
+    </main></div>`;
+  document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => openTool(b.dataset.tool, d));
+}
+function openTool(t, d) {
+  const m = d.master;
+  const C = {
+    report: `<h3 style="margin-top:0">${d.name} 단지 리포트 — 1쪽 미리보기</h3><div class="box"><div style="display:flex;gap:12px;align-items:center"><img src="img/logo-jipconomy.svg" style="height:26px"><b style="font-size:18px">${d.name} 2026년 10월 시세 리포트</b></div><div class="note" style="margin:4px 0 10px">${m.office} · ${m.name} 대표 공인중개사</div><img src="${d.photo}" style="width:100%;height:160px;object-fit:cover"><div class="kv" style="margin-top:12px"><div><div class="l">KB 매매 33평</div><div class="v">${won(d.kbM)}</div></div><div><div class="l">전세가율</div><div class="v">${d.jr}%</div></div><div><div class="l">1년 변동</div><div class="v">${pct(d.chg1y)}</div></div><div><div class="l">2년 변동</div><div class="v up">${pct(d.chg2y)}</div></div></div>${lineChart([{data: d.ms, color: '#0d79c7'}, {data: d.js, color: '#999'}], MONTHS, 580, 180)}</div><p class="note">2~6쪽: 실거래 표 · 평형별 호가 · 입지(단지위키) · 주변 단지 비교 · 면책 문구</p>`,
+    short: `<h3 style="margin-top:0">60초 숏폼 대본</h3><ol style="line-height:1.9;font-size:14px"><li>(0~5초) "송파 9,510세대, 헬리오시티 지금 얼마일까요?"</li><li>(5~20초) KB 33평 ${won(d.kbM)}, 2년 전보다 ${d.chg2y}% 올랐어요.</li><li>(20~35초) 최근 3개월 실거래 ${d.trades3m}건, 9월 32평 30억 5,500.</li><li>(35~50초) 전세가율 ${d.jr}%, 위례신사선 '탄천역'이 유력해요.</li><li>(50~60초) "동·라인별 시세는 헬리오시티 AI Master ${m.name} 대표에게!" + 집코노미 링크</li></ol><p class="note">자막·차트 장면 자동 생성, 중개사 얼굴·음성은 선택</p>`,
+    blog: `<h3 style="margin-top:0">블로그 글 초안</h3><div style="font-size:14px;line-height:1.8"><b>[이번 주 헬리오시티] 33평 30억 안팎에서 거래</b><br>헬리오시티 33평 KB 시세는 ${won(d.kbM)}(10/1)로 1년 전과 비슷한 수준(${pct(d.chg1y)})이지만, 2년 전과 비교하면 ${d.chg2y}% 올랐습니다. 7~9월 실거래는 ${d.trades3m}건이었고 33평은 29억~31억에 거래됐어요. 전세는 ${won(d.kbJ)}로 전세가율이 ${d.jr}%입니다…</div><p class="note">출처·면책 문구 자동 삽입 · 과장 표현 검사 후 발행</p>`,
+    sms: `<h3 style="margin-top:0">관심 고객 문자</h3><div class="box" style="font-size:14px;line-height:1.7;background:var(--bg3)">[집코노미 AI Master] 안녕하세요, ${m.office} ${m.name}입니다. 관심 두신 헬리오시티 33평 KB 시세가 ${won(d.kbM)}입니다. 최근 32평이 30억 5,500에 거래됐어요. 동·층별 매물이 궁금하시면 편하게 연락 주세요. (수신거부 080-XXX-XXXX)</div><p class="note">광고성 정보 표기·수신동의 고객에게만 발송</p>`
+  };
+  $('#modalBox').innerHTML = C[t] + '<div style="text-align:right;margin-top:12px"><button class="btn line" onclick="document.getElementById(\'modal\').style.display=\'none\'">닫기</button></div>';
+  $('#modal').style.display = 'flex';
+}
+$('#modal').onclick = e => { if (e.target.id === 'modal') e.target.style.display = 'none'; };
+
+/* ═════ S6 광고상품 ═════ */
+const tier = hh => hh >= 5000 ? ['S', 200] : hh >= 2000 ? ['A', 120] : hh >= 1000 ? ['B', 70] : ['C', 40];
+function renderS6() {
+  const slot = DANJI.map(d => {
+    const [g, p] = tier(d.hh), s = d.master.status;
+    const st = s === 'sold' ? '<span class="lst done">판매완료</span>' : s === 'bidding' ? `<span class="lst plan">입찰중 ${d.master.endsIn}</span>` : '<span class="lst ing">신청 가능</span>';
+    const act = s === 'sold' ? '<button class="btn line" style="padding:5px 10px;font-size:12px">대기 신청</button>' : s === 'bidding' ? '<button class="btn black" style="padding:5px 10px;font-size:12px">입찰 참여</button>' : '<button class="btn blue" style="padding:5px 10px;font-size:12px">바로 신청</button>';
+    return `<tr><td><div style="display:flex;gap:10px;align-items:center"><img src="${d.photo}" style="width:56px;height:38px;object-fit:cover"><div><b>${d.name}</b><div class="note">${d.dong}</div></div></div></td><td class="r num">${d.hh.toLocaleString()}</td><td>${g}</td><td class="r num">${s === 'bidding' ? '최저 ' : ''}${p}만원</td><td>${st}</td><td>${act}</td></tr>`;
+  }).join('');
+  $('#s6frame').innerHTML = `
+  <div class="prod-hero"><img class="bgimg ph" src="img/p_aerial.jpg" alt="" style="position:absolute"><div class="wrap" style="position:relative">
+    <div style="display:flex;gap:10px;align-items:center"><img src="img/logo-jipconomy-w.svg" style="height:30px"><span class="mbadge" style="background:var(--blue)">AI Master</span></div>
+    <h1>우리 단지의 <em>단 한 명</em>,<br>집코노미 AI Master</h1>
+    <div style="opacity:.85;font-size:15px">한국경제 독자가 단지를 찾는 순간 — 지도·단지 페이지·AI 상담에 대표님만 노출됩니다.</div>
+    <div style="display:flex;gap:36px;margin-top:24px;font-size:13px;opacity:.9"><div><b style="font-size:24px;display:block">단지당 1명</b>독점 노출</div><div><b style="font-size:24px;display:block">3곳</b>지도·단지 페이지·AI 상담</div><div><b style="font-size:24px;display:block">기사 인용</b>현장 제보로 한경 기사에 실명 게재(편집국 판단)</div></div></div></div>
+  <div class="wrap">
+    <div class="prods" style="position:relative"><i class="an" data-n="1" style="left:-12px;top:24px"></i>
+      <div class="prod main"><div class="ntag"><span class="b ai">대표 상품</span></div><h3>AI Master 단지 독점</h3><div class="note">단지 1곳 · 중개사무소 1곳</div>
+        <ul><li>지도 마커에 대표님 사진·배지</li><li>단지 AI 페이지 우측 카드 + 하단 고정 상담 버튼</li><li>AI 상담에서 사람 연결 시 대표님께 배정</li><li>그 단지가 나온 한경 기사 하단 박스</li><li>현장 제보가 인용되면 기사 옆 취재원 카드에 상담 버튼</li><li>중개사 센터(리드 관리·홍보물 제작) 포함</li></ul>
+        <div class="price num">월 40~200만원 <span class="note" style="font-weight:400">세대수 등급별</span></div></div>
+      <div class="prod"><div class="ntag"><span class="b">추가 상품</span></div><h3>동네 스폰서</h3><div class="note">법정동 단위 · 최대 3곳</div>
+        <ul><li>동네뉴스맵 동 클러스터 클릭 시 노출</li><li>동네 기사 목록 상단 1칸</li><li>독점 단지 없는 동의 리드 우선 배정</li></ul><div class="price num">월 30만원~ <span class="note" style="font-weight:400">가설</span></div></div>
+      <div class="prod"><div class="ntag"><span class="b">옵션</span></div><h3>상담 신청 건당 과금</h3><div class="note">월정액 대신 또는 함께</div>
+        <ul><li>동의 받은 상담 신청 1건당 과금</li><li>같은 고객 7일 내 중복은 1건</li><li>허위·장난 신청은 환불</li></ul><div class="price num">건당 3만원~ <span class="note" style="font-weight:400">가설</span></div></div>
+    </div>
+    <div style="position:relative"><i class="an" data-n="2" style="left:-12px;top:-4px"></i><div class="sec-tit">세대수 등급별 월 단가 <span class="sub">가설</span></div>
+      <div class="tiers">${[['S', '5,000세대 이상', 200, '공개 입찰'], ['A', '2,000~4,999세대', 120, '선착순'], ['B', '1,000~1,999세대', 70, '선착순'], ['C', '1,000세대 미만', 40, '선착순']].map(r => `<div><b>${r[0]}등급 · ${r[3]}</b><div style="font-size:13.5px;margin-top:2px">${r[1]}</div><div class="num" style="font-size:22px;font-weight:700;margin-top:4px">월 ${r[2]}만원</div></div>`).join('')}</div></div>
+    <div style="margin-top:36px;position:relative"><i class="an" data-n="3" style="left:-12px;top:-4px"></i><div class="sec-tit">단지별 AI Master 자리 현황 <span class="sub">송파구 · 시안</span></div>
+      <table class="tbl"><tr><th>단지</th><th class="r">세대수</th><th>등급</th><th class="r">월 단가</th><th>상태</th><th></th></tr>${slot}</table></div>
+    <div style="margin:36px 0 44px"><div class="sec-tit">신청 절차 · 자격</div>
+      <div class="steps"><div><b>1. 신청</b>중개사무소 등록증·사업자등록증 업로드</div><div><b>2. 자격 확인</b>개설등록 확인, 단지 반경 1km 안 사무소, 최근 1년 해당 단지 거래 실적</div><div><b>3. 계약·결제</b>3·6·12개월 · 12개월은 1개월 무료(가설)</div><div><b>4. 노출 시작</b>다음 날 0시부터 지도·단지 페이지·AI 상담에 노출</div></div>
+      <div style="border-left:3px solid var(--blue);background:var(--bg3);padding:12px 16px;margin-top:16px;font-size:13.5px"><b>현장 제보·뉴스 PR</b> — 제보는 모든 중개사가 무료로 할 수 있고, 기사에 실을지·누구를 인용할지는 한국경제 편집국이 정합니다. 돈을 내고 기사 인용을 사는 상품은 없습니다.</div>
+      <div class="legal">AI Master는 광고 상품이며 화면에 '광고'로 표시됩니다. 한경·리치고가 중개 품질을 보증하지 않으며, 허위 매물·부당 광고가 확인되면 계약이 해지됩니다.</div></div>
+  </div>`;
+}
+
+/* ═════ S7 현장 제보 ═════ */
+function renderS7() {
+  const R = REPORTS, okDeals = R.filter(r => r.type === '계약' && r.check === 'ok').length, moods = R.filter(r => r.check === 'na').length, helio = byId('a1zUerj');
+  $('#s7wrap').innerHTML = `
+  <div class="s7top">
+    <div style="position:relative"><i class="an" data-n="1" style="right:-4px;top:20px"></i>
+      <div class="phone" style="margin:0 auto"><div class="scr"><div class="stat"><span>9:41</span><span>●●● ▮</span></div>
+        <div class="mhead"><span style="font-size:20px">‹</span><b>현장 제보하기</b><img src="img/logo-jipconomy.svg" style="height:20px;margin-left:auto"></div>
+        <div class="body" style="padding:14px 16px">
+          <div class="note" style="margin-bottom:6px">어떤 소식인가요?</div>
+          <div style="display:flex;flex-wrap:wrap;gap:4px"><span class="chip on">계약 체결</span><span class="chip">문의 증가</span><span class="chip">급매 출현</span><span class="chip">전세 동향</span><span class="chip">현장 분위기</span></div>
+          <div class="fld"><label>단지</label><div>헬리오시티 · 가락동 ⌄</div></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div class="fld"><label>평형</label><div>33평 ⌄</div></div><div class="fld"><label>층</label><div>고층 ⌄ <span class="note">(정확한 층 X)</span></div></div><div class="fld"><label>계약일</label><div>2026.10.11</div></div><div class="fld"><label>거래가</label><div>30억 2,000</div></div></div>
+          <div class="fld"><label>기자에게 전할 한마디 <span class="note">(인용될 수 있어요)</span></label><div style="min-height:60px;line-height:1.5">33평 고층 계약 완료. 매수인은 대치동 학원가 접근성을 보고 갈아탄 실거주자예요.</div></div>
+          <label class="agree"><input type="checkbox" checked> 기사에 인용될 때 <b>사무소명·이름</b>을 실어도 됩니다</label>
+          <label class="agree"><input type="checkbox" checked> 동·호수나 거래 당사자를 알 수 있는 정보를 넣지 않았습니다 <span class="note">(필수)</span></label>
+          <label class="agree"><input type="checkbox" checked> 거래 당사자에게 공개 동의를 받았습니다 <span class="note">(계약 제보 시 필수)</span></label>
+          <button class="btn black" style="width:100%;margin-top:10px">제보 보내기</button>
+          <div class="trust"><div style="display:flex;gap:8px;align-items:center">${face('김OO', 34)}<div><div class="note">내 제보 신뢰도</div><b class="num" style="font-size:20px;color:var(--blue)">92</b><span class="note">/100</span></div></div><div class="note" style="text-align:right">계약 제보 12건 중<br><b style="color:var(--text)">11건 국토부 신고 일치</b></div></div>
+          <div class="note" style="margin-top:8px;line-height:1.5">가격은 국토부 실거래 신고가 확인된 뒤에만 기사에 숫자로 실려요. 30일 넘게 신고가 없으면 신뢰도가 깎여요.</div>
+        </div></div></div></div>
+
+    <div class="frame" style="margin:0">
+      <div class="deskhead"><b>한국경제 편집국 · 집코노미 제보 데스크</b><span style="color:#9fb0d6;font-size:12px">기자 전용 · 최근 6주</span></div>
+      <div class="dongs" style="position:relative"><i class="an" data-n="2" style="right:8px;top:6px"></i>
+        ${DONG_REPORTS.map(d => `<div class="dongc ${d.dong === '가락동' ? 'on' : ''}"><div style="display:flex;justify-content:space-between;gap:6px"><b>${d.dong}</b>${d.ready ? '<span class="ck ok">기사화 가능</span>' : '<span class="ck na">모으는 중</span>'}</div><div class="note">제보 ${d.total}건 · 확인 거래 ${d.deals} · 분위기 ${d.moods}</div><div class="gbar"><i style="width:${(Math.min(d.deals, 3) + Math.min(d.moods, 3)) / 6 * 100}%"></i></div></div>`).join('')}
+        <div class="note" style="width:100%">기사화 기준(안): 신고로 확인된 거래 3건 + 분위기 제보 3건이 모이면 담당 기자에게 알림</div></div>
+      <div class="deskbody">
+        <div style="position:relative"><i class="an" data-n="3" style="right:6px;top:-4px"></i>
+          <div class="box-tit">가락동 제보 ${R.length}건 <span class="more">확인 거래 ${okDeals} · 분위기 ${moods}</span></div>
+          ${R.map(r => `<div class="rep ${r.check === 'none' ? 'dim' : ''}"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span><b>${r.danji}</b> · ${r.type}${r.deal ? ` · <b>${r.deal}</b>` : ''}</span>${CHECK[r.check]}</div>
+            <div style="margin:3px 0;color:var(--text2)">"${r.text}"</div><div class="note" style="display:flex;gap:6px;align-items:center">${face(r.face || r.who, 18)}${r.at} · ${r.office} ${r.who}${r.master ? ' <span class="mbadge">AI Master</span>' : ''}${r.match ? ' · ' + r.match : ''}</div></div>`).join('')}</div>
+        <div style="position:relative"><i class="an" data-n="4" style="right:6px;top:-4px"></i>
+          <div class="box-tit">AI 기사 초안 <span class="more">제보 + 실거래 + KB 시세</span></div>
+          <div class="draft"><div class="note">집코노미 · 동네 시장 리포트 · 송파구 가락동</div>
+            <b style="font-size:16px;line-height:1.45;display:block;margin:4px 0 8px">추석 지나자 가락동 '국평' 문의 늘었다…헬리오시티 30억대 거래 이어져</b>
+            <p>송파구 가락동 대단지에서 추석 이후 매수 문의가 늘고 있다. 국토교통부 실거래가 공개시스템에 따르면 헬리오시티 32평형은 지난달 22일 <mark>30억5500만원</mark>에 거래됐다. 가락쌍용1차 24평형도 이달 6일 <mark>19억3500만원</mark>에 손바뀜했다.</p>
+            <p><q>송파헬리오OO공인중개사 김OO 대표</q>는 "추석 이후 32평 매수 문의가 주 2~3건에서 5건 이상으로 늘었다"며 "30억원 아래 매물이 빠르게 빠지는 분위기"라고 말했다.</p>
+            <p><q>가락OO부동산 윤OO 대표</q>는 "리모델링 기대에 가락쌍용1차 24평 문의가 늘면서 집주인들이 호가를 1000만~2000만원 올렸다"고 전했다.</p>
+            <div class="note" style="border-top:1px dashed var(--line);padding-top:8px;margin-top:8px;line-height:1.6">✓ 숫자는 신고 확인분만 · 신고 대기 1건은 '현장 전언'으로만 · 신고 없는 1건 제외<br>✓ 인용 중개사 모두 실명 게재 동의</div></div>
+          <div style="display:flex;gap:6px;margin-top:10px"><button class="btn line" style="flex:1">취재 메모 추가</button><button class="btn line" style="flex:1">인용 빼기·고치기</button><button class="btn black" style="flex:1">검수 후 발행</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" style="margin-top:22px;position:relative">
+    ${hkHeader('동네뉴스맵')}
+    <div class="wrap"><div class="article">
+      <div style="position:relative"><i class="an" data-n="5" style="left:-14px;top:40px"></i>
+        <div class="ntag"><span class="b">현장 제보</span><span class="c">동네 시장 리포트 · 송파구 가락동</span></div>
+        <h1 class="atitle">추석 지나자 가락동 '국평' 문의 늘었다…헬리오시티 30억대 거래 이어져</h1>
+        <div class="abyline"><span>○○○ 기자 · 입력 2026.10.14 11:00 · <b>집코노미 현장 제보 4건 반영</b> · 예시 기사</span><span style="display:flex;gap:12px">${IC.font}${IC.mark}${IC.share}</span></div>
+        <div class="abody">
+          <figure><img src="img/r_ssangyong.jpg" style="width:100%;height:420px;object-fit:cover"><figcaption>서울 송파구 가락동 '가락쌍용1차' 전경. 사진=쌍용건설</figcaption></figure>
+          <p>송파구 가락동 대단지에서 추석 이후 매수 문의가 늘고 있다. 국토교통부 실거래가 공개시스템에 따르면 헬리오시티 32평형은 지난달 22일 30억5500만원에 거래됐다. KB부동산 시세(33평 29억2500만원)를 웃도는 가격이다. 가락쌍용1차 24평형도 이달 6일 19억3500만원에, 래미안파크팰리스 26평형은 지난달 12일 22억9000만원에 손바뀜했다.</p>
+          <p>현장에서는 문의가 늘었다는 목소리가 많다. 헬리오시티 상가에서 영업하는 송파헬리오OO공인중개사 김OO 대표는 "추석 이후 32평 매수 문의가 주 2~3건에서 5건 이상으로 늘었다"며 "30억원 아래 매물이 빠르게 빠지는 분위기"라고 말했다.</p>
+          <p>가락OO부동산 윤OO 대표는 "리모델링 기대에 가락쌍용1차 24평 문의가 늘면서 집주인들이 호가를 1000만~2000만원 올렸다"고 전했다. 전세 시장은 조용한 편이다. 가락시장OO부동산 이OO 대표는 "33평 전세 매물이 13억원대 2~3개뿐이고 대부분 갱신 계약으로 돌아섰다"고 했다. KB 기준 헬리오시티 33평 전세가율은 ${helio.jr}%다.</p>
+          <figure style="border:1px solid var(--line);padding:14px 16px"><b style="font-size:14px">헬리오시티 33평 시세 추이</b>${lineChart([{data: helio.ms, color: '#0d79c7'}, {data: helio.js, color: '#999'}], MONTHS, 700, 190)}<figcaption>자료: 리치고 · KB부동산 · 국토교통부</figcaption></figure>
+          <p>리치고 분석에 따르면 헬리오시티 33평 시세는 2년 전보다 ${helio.chg2y}% 올랐지만 최근 1년은 보합(${pct(helio.chg1y)})이다.</p>
+          <p style="font-size:15px;color:var(--text2)">○○○ 기자 xxx@hankyung.com</p>
+        </div>
+        <div class="legal">이 기사는 공인중개사들이 보낸 현장 제보를 바탕으로 기자가 취재·검수해 작성했습니다. 기사에 실을지, 누구를 인용할지는 한국경제 편집국이 판단하며 비용을 받지 않습니다. 거래 가격은 국토교통부 신고가 확인된 것만 썼습니다.</div>
+      </div>
+      <aside style="position:relative"><i class="an" data-n="6" style="left:-14px;top:0"></i>
+        <div class="sec-tit" style="font-size:17px">이 기사에 나온 현장 중개사</div>
+        ${[['김OO', '김OO', '송파헬리오OO공인중개사', '헬리오시티', true, 92], ['윤OO', '윤OO', '가락OO부동산', '가락쌍용1차', false, 88], ['이OO2', '이OO', '가락시장OO부동산', '헬리오시티', false, 81]].map(p => `
+          <div class="src-card"><div style="display:flex;gap:12px;align-items:center">${face(p[0], 56)}<div><b style="font-size:15px">${p[1]} 대표</b>${p[4] ? ' <span class="mbadge">AI Master</span>' : ''}<div class="note">${p[2]}</div><div class="note">${p[3]} · 제보 신뢰도 ${p[5]}</div></div></div>
+          ${p[4] ? `<div style="display:flex;gap:6px;margin-top:10px;align-items:center"><button class="btn navy" style="flex:1;padding:8px">헬리오시티 상담 신청</button><span class="ad">광고</span></div>` : `<div class="note" style="margin-top:8px">이 중개사가 제보한 다른 기사 2건 ›</div>`}</div>`).join('')}
+        <div class="note" style="line-height:1.55;border-top:1px solid var(--line);padding-top:10px">상담 버튼은 AI Master(광고) 계약 중개사에게만 붙어요. 기사 본문 인용 여부와는 상관없어요.</div>
+        <div class="sec-tit" style="font-size:17px;margin-top:28px">많이 본 뉴스 <span class="chev">›</span></div>
+        ${N.sec.slice(0, 4).map(a => newsItem(a, 'sm')).join('')}
+      </aside>
+    </div></div>
+  </div>`;
+}
+
+/* 화면 전환 */
+const inits = {s1: initS1, s2: initS2};
+function show(id) {
+  if (!document.getElementById('v-' + id)) id = 's1';
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === 'v-' + id));
+  document.querySelectorAll('.deck .tab').forEach(b => b.classList.toggle('on', b.dataset.s === id));
+  if (inits[id]) setTimeout(inits[id], 30);
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll('.deck .tab').forEach(b => b.onclick = () => { location.hash = b.dataset.s; });
+window.addEventListener('hashchange', () => show(location.hash.slice(1)));
+$('#annoT').onchange = e => document.body.classList.toggle('noanno', !e.target.checked);
+renderS1(); renderS2(); renderS3(); renderS4(); renderS5(); renderS6(); renderS7();
+show(location.hash.slice(1) || 's1');
+</script>
+</body>
+</html>
