@@ -24,7 +24,7 @@ window.HK = (function () {
       kbM:29.00, kbJ:11.90, live:95, gn:2, gnG:1, trades3m:27, kw:['대단지','초품아','역세권'],
       ms:[225,228,228,227,232,246,247,254,268,279,279,282,292,297,298,299,297,286,280,282,288,293,297,293,292],
       js:[100,102,100,99,97,99,103,105,106,106,104,105,106,106,105,106,107,106,107,111,117,117,116,115,116],
-      master:{status:'bidding', bids:3, endsIn:'D-4'} },
+      master:{status:'open'} },
     { id:'a9PtiNp', name:'트리지움', dong:'잠실동', lat:37.509812, lng:127.088394, hh:3696, built:'2007.08', py:33,
       kbM:31.46, kbJ:13.96, live:95, gn:15, gnG:3, trades3m:23, kw:['대단지','초품아','역세권'],
       ms:[255,254,253,248,262,281,277,283,301,317,317,315,320,318,320,321,321,302,307,309,315,319,318,318,318],
@@ -77,14 +77,15 @@ window.HK = (function () {
   ];
 
   // 현장 제보 예시 — 중개사·코멘트는 가상, '계약' 제보의 가격·날짜·층은 국토부 실거래 신고와 실제로 대조됨
-  // check: ok=신고 확인 / wait=신고 대기(계약 후 30일 이내) / none=신고 없음(30일 경과, 기사 제외) / na=분위기 제보(대조 대상 아님)
+  // check: verified=계약 사실 확인(신고 전 · 속보 가능) / ok=국토부 신고 일치 / none=계약 확인 안 됨(보도 안 함) / na=분위기 제보
+  // (10/20 수정안: 신고 전이라도 계약서 확인 뒤 속보 → 국토부 자료로 사후 대조 → 해제·정정 추적)
   const REPORTS = [
     {at:'10.14 08:50', who:'김OO', office:'송파헬리오OO공인중개사', master:true, danji:'헬리오시티', type:'분위기',
      text:'추석 이후 32평 매수 문의가 주 2~3건에서 5건 이상으로 늘었어요. 30억 아래 매물이 빠르게 빠지는 분위기입니다.', check:'na', mood:'up'},
     {at:'10.13 17:20', who:'윤OO', office:'가락OO부동산', master:false, danji:'가락쌍용1차', type:'문의 증가',
      text:'리모델링 기대에 24평 문의가 늘면서 집주인들이 호가를 1천만~2천만원 올렸어요.', check:'na', mood:'up'},
     {at:'10.11 14:05', who:'김OO', office:'송파헬리오OO공인중개사', master:true, danji:'헬리오시티', type:'계약',
-     deal:'33평 · 고층 · 30억 2,000', text:'33평 고층 계약 완료. 매수인은 대치동 학원가 접근성을 보고 갈아탄 실거주자예요.', check:'wait', mood:'up'},
+     deal:'33평 · 고층 · 30억 2,000', text:'33평 고층 계약 완료. 매수인은 대치동 학원가 접근성을 보고 갈아탄 실거주자예요.', check:'verified', match:'계약서 확인(인적사항 가림) · 신고 기한 11.10', mood:'up'},
     {at:'10.09 11:40', face:'이OO2', who:'이OO', office:'가락시장OO부동산', master:false, danji:'헬리오시티', type:'전세 동향',
      text:'33평 전세 매물이 13억대 2~3개뿐이고 대부분 갱신 계약으로 돌아서요.', check:'na', mood:'same'},
     {at:'10.06 19:10', who:'윤OO', office:'가락OO부동산', master:false, danji:'가락쌍용1차', type:'계약',
@@ -94,7 +95,7 @@ window.HK = (function () {
     {at:'09.12 13:15', who:'서OO', office:'래미안파크OO공인중개사', master:false, danji:'래미안파크팰리스', type:'계약',
      deal:'26평 · 저층 · 22억 9,000', text:'26평 저층 계약. 저층인데도 22억대 후반에 성사됐어요.', check:'ok', match:'국토부 신고 09.12 · 26평 6층 22억 9,000', mood:'up'},
     {at:'09.05 10:00', face:'박OO2', who:'박OO', office:'가락OOO부동산', master:false, danji:'가락쌍용1차', type:'계약',
-     deal:'33평 · 고층 · 23억 5,000', text:'33평 신고가 계약 소식입니다.', check:'none', match:'계약 후 39일 · 신고 없음', mood:'up'}
+     deal:'33평 · 고층 · 23억 5,000', text:'33평 신고가 계약 소식입니다.', check:'none', match:'계약서 미제출 · 39일째 신고 없음', mood:'up'}
   ];
   const DONG_REPORTS = [  // 읍면동별 최근 6주 제보 모임
     {dong:'가락동', total:8, deals:3, moods:4, ready:true},
@@ -120,6 +121,29 @@ window.HK = (function () {
   const FACE = {'김OO':'img/broker_kim.jpg','이OO':'img/broker_lee_els.jpg','박OO':'img/broker_park.jpg','최OO':'img/broker_choi.jpg','정OO':'img/broker_jung.jpg',
     '한OO':'img/broker_han.jpg','윤OO':'img/broker_yoon.jpg','이OO2':'img/broker_lee_garak.jpg','서OO':'img/broker_seo.jpg','박OO2':'img/broker_park2.jpg'};
 
+  // 보도 후 추적(10/20 수정안) — 속보로 낸 거래를 국토부 자료와 매일 대조, 해제되면 정정
+  const POSTCHECK = [
+    {date:'10.11', title:"헬리오시티 33평 30억대 재진입 [거래 속보]", status:'pending', note:'계약서 확인 후 속보 · 신고 기한 11.10 · 매일 국토부 자료 대조'},
+    {date:'10.06', title:"가락쌍용1차 24평 19억3500만원 거래", status:'ok', note:'10.07 국토부 신고 일치(18층 19억 3,500)'},
+    {date:'09.18', title:"잠실동 국평 신고가 거래 [거래 속보] (예시)", status:'cancel', note:'10.02 계약 해제 신고 확인 → 10.03 정정 기사·원기사 정정 문구'}
+  ];
+  // 집코노미 파트너스(스탠다드) — 단지 독점 없이 중개업소 전문 페이지·매물·제보·검색 성과 리포트 이용. 단지파트너(프리미엄)는 DANJI[].master
+  const PARTNERS = [
+    {key:'김OO', name:'김OO', office:'송파헬리오OO공인중개사', slug:'songpa-helio-oo', tier:'premium', danji:['헬리오시티'], area:'송파구 가락동', since:'2014', deals:328, rating:4.9, reports:12, cited:2},
+    {key:'윤OO', name:'윤OO', office:'가락OO부동산', slug:'garak-oo', tier:'standard', danji:['가락쌍용1차','가락2차쌍용'], area:'송파구 가락동', since:'2009', deals:214, rating:4.7, reports:9, cited:1},
+    {key:'이OO2', name:'이OO', office:'가락시장OO부동산', slug:'garakmarket-oo', tier:'standard', danji:['헬리오시티'], area:'송파구 가락동', since:'2018', deals:96, rating:4.6, reports:5, cited:1},
+    {key:'서OO', name:'서OO', office:'래미안파크OO공인중개사', slug:'raemian-park-oo', tier:'standard', danji:['래미안파크팰리스'], area:'송파구 가락동', since:'2011', deals:143, rating:4.8, reports:4, cited:0}
+  ];
+  // 매물정보 개편 화면용 예시 매물(가격은 KB 시세·호가 범위 안에서 만든 예시)
+  const LISTINGS = [
+    {danji:'a1zUerj', py:32, floor:'중층', dir:'남향', price:28.7, type:'매매', who:'김OO', verified:true, days:2},
+    {danji:'a1zUerj', py:33, floor:'고층', dir:'남동향', price:30.5, type:'매매', who:'김OO', verified:true, days:5},
+    {danji:'a1zUerj', py:33, floor:'저층', dir:'남향', price:13.5, type:'전세', who:'이OO2', verified:true, days:1},
+    {danji:'a1zUerj', py:25, floor:'중층', dir:'남향', price:26.4, type:'매매', who:'이OO2', verified:false, days:9},
+    {danji:'a9jHYxD', py:24, floor:'고층', dir:'남향', price:19.6, type:'매매', who:'윤OO', verified:true, days:3},
+    {danji:'a9twetl', py:32, floor:'중층', dir:'남서향', price:24.2, type:'매매', who:'서OO', verified:true, days:4}
+  ];
+
   const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 
   // H-AI 스코어 산식(안): 생활 35 + 시세흐름 25 + 호재 15 + 거래활력 15 + 전세안정 10 (모두 과거·현재 실측값)
@@ -134,10 +158,14 @@ window.HK = (function () {
       stable: Math.round(clamp(100 - Math.abs(jr - 0.5) * 250))
     };
   }
-  function score(d) {
-    const a = axes(d); if (!a) return null;
-    return Math.round(a.live * .35 + a.trend * .25 + a.goodnews * .15 + a.activity * .15 + a.stable * .10);
+  // 10/20 수정안: 이용자가 항목별 비중을 조절하는 '나만의 단지 점수' — 기본값은 아래 비중, 광고 계약 여부는 어떤 항목에도 들어가지 않는다
+  const DEFAULT_W = {live:35, trend:25, goodnews:15, activity:15, stable:10};
+  function scoreWith(d, w) {
+    const a = d.axes || axes(d); if (!a) return null;
+    const sum = Object.values(w).reduce((x, y) => x + y, 0) || 1;
+    return Math.round(Object.keys(w).reduce((s, k) => s + a[k] * w[k], 0) / sum);
   }
+  function score(d) { return scoreWith(d, DEFAULT_W); }
   DANJI.forEach(d => {
     d.photo = PHOTO[d.id].src; d.photoCap = PHOTO[d.id].cap; d.photoReal = PHOTO[d.id].real;
     d.axes = axes(d); d.score = score(d);
@@ -154,5 +182,5 @@ window.HK = (function () {
   const scoreClass = s => s == null ? 'sx' : s >= 90 ? 's90' : s >= 80 ? 's80' : s >= 70 ? 's70' : s >= 60 ? 's60' : 'sx';
   const byId = id => DANJI.find(d => d.id === id);
 
-  return { PHOTO, FACE, MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, won, manwon, scoreClass, byId, clamp };
+  return { DEFAULT_W, scoreWith, POSTCHECK, PARTNERS, LISTINGS, PHOTO, FACE, MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, won, manwon, scoreClass, byId, clamp };
 })();
