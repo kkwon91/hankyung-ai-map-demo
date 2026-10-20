@@ -15,6 +15,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="score.js"></script>
 <script src="data.js"></script>
 <script src="news.js"></script>
 <style>
@@ -357,6 +358,7 @@ body.noanno .an, body.noanno .annos{display:none}
   <button class="tab" data-s="s7">⑦ 현장 제보·속보</button>
   <button class="tab" data-s="s8">⑧ 중개업소 전문 페이지</button>
   <button class="tab" data-s="s9">⑨ 매물정보 개편</button>
+  <button class="tab" data-s="s10">⑩ H-AI 스코어 산식</button>
   <span class="sp"></span>
   <label><input type="checkbox" id="annoT" checked> 기획 주석</label>
   <a class="doc" href="plan.html">기획서 →</a>
@@ -380,7 +382,7 @@ body.noanno .an, body.noanno .annos{display:none}
   <div class="annos">
     <div><b>1</b>필터 + '단지파트너 있는 단지'(독자가 켤 때만 — 광고주 우대 노출 아님)</div>
     <div><b>2</b>마커 = 단지명·KB 매매가·스코어 색. 단지파트너 계약 단지엔 중개사 얼굴</div>
-    <div><b>3</b>왼쪽 = 단지 사진·스코어 5축·AI 요약·KB 시세 → 단지 AI 페이지</div>
+    <div><b>3</b>왼쪽 = 단지 사진·스코어 7개 항목·AI 요약·KB 시세 → 단지 AI 페이지</div>
     <div><b>4</b>오른쪽 = 단지파트너(판매됨) / 모집중 + 전문 페이지 연결</div>
     <div><b>5</b>나만의 단지 점수 — 항목 비중을 바꾸면 지도·순위 즉시 반영(광고 영향 없음)</div>
   </div>
@@ -472,10 +474,21 @@ body.noanno .an, body.noanno .annos{display:none}
   </div>
 </section>
 
+<section class="screen" id="v-s10">
+  <div class="cap"><h2>⑩ H-AI 스코어 v1 — 산식과 송파구 전체 순위</h2><p>송파구 아파트·재건축 163개 단지를 리치고 실측 데이터로 실제 계산. 관점·유형을 바꾸고 열 제목을 눌러 정렬해 보세요</p></div>
+  <div class="frame" id="s10frame"></div>
+  <div class="annos">
+    <div><b>1</b>비교 대상·데이터 기준일·원칙(예측값 없음, 광고 영향 없음) 고지</div>
+    <div><b>2</b>관점 프리셋(기본·실거주·시세 흐름·저평가) = '나만의 점수' 기본값. 유형(아파트·재건축) 필터</div>
+    <div><b>3</b>산식 공개: 7개 항목·세부 지표·비중, 백분위 계산 순서</div>
+    <div><b>4</b>검증 수치와 한계·처리 규칙 공개 — 3사 협의 때 산식 조정 근거</div>
+  </div>
+</section>
+
 <div class="modal" id="modal"><div class="mbox" id="modalBox"></div></div>
 
 <script>
-const {MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, FACE, DEFAULT_W, scoreWith, POSTCHECK, PARTNERS, LISTINGS, won, manwon, scoreClass, byId} = HK;
+const {SC, AXES, scoreTable, scoreOf, MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, FACE, DEFAULT_W, scoreWith, POSTCHECK, PARTNERS, LISTINGS, won, manwon, scoreClass, byId} = HK;
 const N = window.HK_NEWS;
 const $ = s => document.querySelector(s);
 const nm = d => d.short || d.name;
@@ -484,7 +497,7 @@ const arrow = v => v == null ? '' : v > 0 ? '▲' : v < 0 ? '▼' : '–';
 const cls = v => v > 0 ? 'up' : v < 0 ? 'down' : 'flat';
 const face = (k, size, extra = '') => `<img class="face" src="${FACE[k] || FACE['김OO']}" style="width:${size}px;height:${size}px;${extra}" alt="">`;
 const masterOf = d => d.master && d.master.status === 'sold' ? d.master : null;
-const rankOf = d => [...DANJI].filter(x => x.score != null).sort((a, b) => b.score - a.score).findIndex(x => x.id === d.id) + 1;
+const rankOf = d => d.rank;
 
 const IC = {
   menu: '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="#121212" stroke-width="1.6"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
@@ -535,13 +548,14 @@ function lineChart(series, labels, w = 760, h = 240) {
   return `<svg viewBox="0 0 ${w} ${h}" width="100%" style="display:block">${g}</svg>`;
 }
 function radar(ax, size = 150, color = '#0d79c7', label = true, grid = '#ddd', txt = '#585858') {
-  const keys = [['live', '생활'], ['trend', '시세흐름'], ['goodnews', '호재'], ['activity', '거래활력'], ['stable', '전세안정']];
-  const c = size / 2, R = size / 2 - (label ? 36 : 6);
-  const pt = (i, r) => { const a = -Math.PI / 2 + i * 2 * Math.PI / 5; return [c + Math.cos(a) * r, c + Math.sin(a) * r]; };
+  const keys = AXES.map(a => [a.key, a.label]);
+  const c = size / 2, R = size / 2 - (label ? 50 : 6);
+  const NK = keys.length;
+  const pt = (i, r) => { const a = -Math.PI / 2 + i * 2 * Math.PI / NK; return [c + Math.cos(a) * r, c + Math.sin(a) * r]; };
   let g = '';
   [1, .66, .33].forEach(k => g += `<polygon points="${keys.map((_, i) => pt(i, R * k).join(',')).join(' ')}" fill="none" stroke="${grid}"/>`);
-  g += `<polygon points="${keys.map((kk, i) => pt(i, R * ax[kk[0]] / 100).join(',')).join(' ')}" fill="${color}" fill-opacity=".22" stroke="${color}" stroke-width="2"/>`;
-  if (label) keys.forEach((kk, i) => { const [px, py] = pt(i, R + 15); g += `<text x="${px}" y="${py + 4}" font-size="10.5" fill="${txt}" text-anchor="middle">${kk[1]} ${ax[kk[0]]}</text>`; });
+  g += `<polygon points="${keys.map((kk, i) => pt(i, R * (ax[kk[0]] || 0) / 100).join(',')).join(' ')}" fill="${color}" fill-opacity=".22" stroke="${color}" stroke-width="2"/>`;
+  if (label) keys.forEach((kk, i) => { const [px, py] = pt(i, R + 15); g += `<text x="${px}" y="${py + 4}" font-size="10" fill="${txt}" text-anchor="middle">${kk[1]} ${ax[kk[0]] == null ? '–' : Math.round(ax[kk[0]])}</text>`; });
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">${g}</svg>`;
 }
 
@@ -700,8 +714,8 @@ function panelS2() {
     <div class="note">서울 송파구 ${d.dong} · 아파트</div>
     <div style="font-size:24px;font-weight:700;letter-spacing:-.8px;margin:2px 0 6px">${d.name}</div>
     <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px">${d.kw.map(k => `<span class="chip" style="padding:2px 8px;font-size:12px">${k}</span>`).join('')}</div>
-    ${d.axes ? `<div class="scorebox"><div><div class="note">H-AI 스코어</div><div class="n">${d.score}<small>/100</small></div><div class="note" style="margin-top:6px">기본 비중 · 시안 10개 단지 중 ${rankOf(d)}위</div><div id="myCur" style="margin-top:6px;font-size:13px"></div></div><div style="margin-left:auto">${radar(d.axes, 168)}</div></div>` + myScoreBox()
-      : `<div class="scorebox"><div><div class="note">H-AI 스코어</div><div class="n" style="font-size:24px;letter-spacing:-.5px">산정 전</div><div class="note" style="margin-top:6px">신축 · 실거래 누적 후 산정</div></div></div>`}
+    ${d.score != null ? `<div class="scorebox"><div><div class="note">H-AI 스코어 <a href="#s10" style="color:var(--blue)">산식 ›</a></div><div class="n">${d.score}<small>/100</small></div><div class="note" style="margin-top:6px">송파구 ${d.rankN}개 단지 중 ${d.rank}위</div><div id="myCur" style="margin-top:6px;font-size:13px"></div></div><div style="margin-left:auto">${radar(d.axes, 196)}</div></div>` + myScoreBox()
+      : `<div class="scorebox"><div><div class="note">H-AI 스코어</div><div class="n" style="font-size:24px;letter-spacing:-.5px">산정 전</div><div class="note" style="margin-top:6px">신축 · 시세 이력 누적 후 산정</div></div></div>` + myScoreBox()}
     <div class="aisum"><div class="h">AI 한줄 요약</div>${aiSummary(d)}</div>
     <div class="kv" style="margin-top:14px"><div><div class="l">KB 매매 (${d.py}평)</div><div class="v num">${won(d.kbM)}</div></div><div><div class="l">KB 전세</div><div class="v num">${won(d.kbJ)}</div></div>
       <div><div class="l">전세가율</div><div class="v num">${d.jr ?? '-'}${d.jr ? '%' : ''}</div></div><div><div class="l">최근 3개월 실거래</div><div class="v num">${d.trades3m ?? '-'}${d.trades3m != null ? '건' : ''}</div></div></div>
@@ -792,8 +806,8 @@ function renderS3() {
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px"><button class="btn line" style="padding:8px 0;font-size:12.5px">전화</button><button class="btn line" style="padding:8px 0;font-size:12.5px">채팅</button><button class="btn line" style="padding:8px 0;font-size:12.5px">방문예약</button></div>
             <div class="legal">중개사무소 ${m.office} · 등록번호 11710-2020-000XX<br>대표 공인중개사 ${m.name} · 서울 송파구 송파대로 3XX · 02-4XX-XXXX<br>※ 예시 정보 · 공인중개사법 제18조의2 표시 항목</div></div>
           <div class="box" style="margin-top:16px"><div class="box-tit">H-AI 스코어 <a href="#s2" class="more">내 기준으로 바꾸기 ›</a></div>
-            <div style="display:flex;align-items:center"><div><div class="num" style="font-size:46px;font-weight:900;color:var(--blue);line-height:1">${d.score}</div><div class="note">시안 10단지 중 ${rankOf(d)}위</div></div><div style="margin-left:auto">${radar(d.axes, 170)}</div></div>
-            <div class="note" style="line-height:1.6">기본 비중: 생활 35 · 시세흐름 25 · 호재 15 · 거래활력 15 · 전세안정 10 — 이용자가 비중을 바꿔 나만의 점수·순위로 볼 수 있음. 실측값 기준, 광고 영향 없음</div></div>
+            <div style="display:flex;align-items:center"><div><div class="num" style="font-size:46px;font-weight:900;color:var(--blue);line-height:1">${d.score}</div><div class="note">송파구 ${d.rankN}개 중 ${d.rank}위</div></div><div style="margin-left:auto">${radar(d.axes, 196)}</div></div>
+            <div class="note" style="line-height:1.6">기본 비중: ${AXES.filter(a => a.w).map(a => a.label + ' ' + a.w).join(' · ')} — 송파구 안 백분위, 실측값만, 광고 영향 없음. <a href="#s10" style="color:var(--blue)">산식·전체 순위 ›</a></div></div>
           <div class="box" style="margin-top:16px"><div class="box-tit">AI에게 물어보기</div><div style="border:2px solid #121212;padding:9px 12px;color:var(--meta);font-size:13.5px">이 단지에 대해 무엇이든 물어보세요</div>
             <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:10px">${['33평 전세 시세는?', '해누리중 배정되나요?', '층간소음 심한가요?', '위례신사선 언제?'].map(q => `<span class="chip" style="font-size:12px;padding:3px 9px">${q}</span>`).join('')}</div></div>
           <div class="box" style="margin-top:16px"><div class="box-tit">송파구 거래 많은 단지</div>
@@ -1140,11 +1154,12 @@ function renderS9() {
 
 /* ═════ 나만의 단지 점수 (S2) ═════ */
 let userW = {...DEFAULT_W};
-const W_LABEL = {live: '생활', trend: '시세흐름', goodnews: '호재', activity: '거래활력', stable: '전세안정'};
+const W_LABEL = Object.fromEntries(AXES.map(a => [a.key, a.label]));
 const myScore = d => scoreWith(d, userW);
 function myScoreBox() {
   return `<div class="myw" style="position:relative"><i class="an" data-n="5" style="right:-8px;top:-8px"></i>
-    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">나만의 단지 점수</b><button class="btn line" style="padding:3px 8px;font-size:11.5px" onclick="resetW()">기본값</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:14px">나만의 단지 점수</b><a href="#s10" class="note" style="color:var(--blue)">산식 ›</a></div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin:6px 0">${Object.keys(SC.presets).map(k => `<button class="chip" style="padding:2px 8px;font-size:11.5px" onclick="setPreset('${k}')">${k}</button>`).join('')}</div>
     <div class="note" style="margin:2px 0 8px">내가 중요하게 보는 항목의 비중을 올려 보세요. 지도·순위가 바로 바뀝니다.</div>
     ${Object.keys(W_LABEL).map(k => `<div class="wrow"><span>${W_LABEL[k]}</span><input type="range" min="0" max="50" step="5" value="${userW[k]}" data-k="${k}"><b class="num" id="wv-${k}">${userW[k]}</b></div>`).join('')}
     <div id="myRank" style="margin-top:10px"></div>
@@ -1157,12 +1172,63 @@ function bindMyScore() {
   refreshMyScore();
 }
 function resetW() { userW = {...DEFAULT_W}; panelS2(); drawS2(); }
+function setPreset(k) { userW = {...SC.presets[k]}; panelS2(); drawS2(); }
 function refreshMyScore() {
-  const rk = DANJI.filter(x => x.ms).map(x => ({x, s: myScore(x)})).sort((a, b) => b.s - a.s).slice(0, 5);
-  $('#myRank').innerHTML = '<div class="note" style="margin-bottom:4px">내 기준 순위 TOP 5</div>' + rk.map((r, i) => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid var(--line3)"><span><b style="color:var(--blue)">${i + 1}</b> ${r.x.name}</span><span class="sc ${scoreClass(r.s)}">${r.s}</span></div>`).join('');
+  const T = scoreTable(userW), rk = Object.entries(T).sort((a, b) => a[1].rank - b[1].rank).slice(0, 5);
+  $('#myRank').innerHTML = `<div class="note" style="margin-bottom:4px">내 기준 순위 TOP 5 · 송파구 ${Object.keys(T).length}개 단지</div>` + rk.map(([id, r]) => `<div style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0;border-bottom:1px solid var(--line3)"><span><b style="color:var(--blue)">${r.rank}</b> ${scoreOf(id).name}</span><span class="sc ${scoreClass(r.score)}">${r.score}</span></div>`).join('');
   const cur = byId(s2sel), el = $('#myCur');
-  if (el && cur.ms) el.innerHTML = `내 기준 <b class="num" style="color:var(--blue);font-size:18px">${myScore(cur)}</b>`;
+  const mc = scoreTable(userW)[cur.id];
+  if (el && mc) el.innerHTML = `내 기준 <b class="num" style="color:var(--blue);font-size:18px">${mc.score}</b> <span class="note">(${mc.rank}위)</span>`;
   drawS2();
+}
+
+
+/* ═════ S10 H-AI 스코어 v1 — 산식·송파구 전체 순위 ═════ */
+let s10 = {preset: '기본', type: 'all', sort: 'score'};
+function renderS10() {
+  const st = SC.stats;
+  $('#s10frame').innerHTML = hkHeader('AI 단지지도') + `
+  <div class="wrap">
+    <div class="crumb">집코노미 › AI 단지지도 › <b>H-AI 스코어</b></div>
+    <div class="dtitle" style="position:relative"><i class="an" data-n="1" style="left:-12px;top:0"></i>
+      <div><div class="ntag"><span class="b ai">H-AI 스코어 ${SC.version}</span><span class="c bl">${SC.scope}</span></div><h1>송파구 아파트 ${st.scored}개 단지 점수</h1>
+      <div class="meta">리치고 단지 데이터 · 리치고 시세 · 국토부 실거래 · KB 시세(${SC.kb_date}) 실측값으로 계산 · 가격 예측값 없음 · 광고 계약 여부 반영 안 함</div></div></div>
+    <div class="s3-body">
+      <div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;position:relative" id="s10ctl"><i class="an" data-n="2" style="left:-12px;top:-6px"></i></div>
+        <table class="tbl" style="margin-top:12px" id="s10tbl"></table>
+        <div class="note" style="margin-top:8px">점수 = 송파구 안 백분위(100에 가까울수록 상위). 항목 점수도 각 지표의 송파구 안 백분위를 평균한 값. 산정 전 ${st.n - st.scored}곳은 신축 등으로 4개 항목 이상 데이터가 없는 단지</div>
+      </div>
+      <aside><div style="position:sticky;top:60px">
+        <div class="box" style="position:relative"><i class="an" data-n="3" style="right:-10px;top:-10px"></i><div class="box-tit">산식</div>
+          ${AXES.map(a => `<div style="border-top:1px solid var(--line3);padding:8px 0"><div style="display:flex;justify-content:space-between"><b>${a.label}</b><span class="num" style="color:var(--blue);font-weight:700">${a.w}${a.w ? '%' : ' (선택)'}</span></div><div class="note" style="line-height:1.5">${a.subs.map(s => `${s.label} ${Math.round(s.w * 100)}`).join(' · ')}</div></div>`).join('')}
+          <div class="note" style="line-height:1.55;border-top:1px solid var(--line);padding-top:8px">① 지표마다 송파구 안 백분위로 바꿈 → ② 항목별 가중 평균 → ③ 비중대로 합산 → ④ 다시 백분위로 표시. 값이 없는 지표는 빼고 나머지 비중으로 나눔.</div></div>
+        <div class="box" style="margin-top:14px;position:relative"><i class="an" data-n="4" style="right:-10px;top:-10px"></i><div class="box-tit">검증</div>
+          <div class="kv"><div><div class="l">총점 ↔ 평당가 상관</div><div class="v num">${st.corr_total_pp}</div></div><div><div class="l">입지·상품성 → 평당가 설명력</div><div class="v num">R² ${st.r2_pp}</div></div></div>
+          <div class="note" style="margin-top:8px;line-height:1.55">총점이 시장 가격과 같은 방향(0.79)이라 '좋은 단지일수록 높게' 나온다는 기본 검증은 통과. 다만 시장평가(평당가) 항목이 들어 있어 생기는 부분이 있어, 입지·상품성만으로는 가격의 33%를 설명한다. '가격매력'은 이 설명에서 벗어난 만큼(같은 조건 대비 싼 정도)을 점수로 만든 것.</div></div>
+        <div class="box" style="margin-top:14px"><div class="box-tit">한계·처리 규칙</div>
+          <div class="note" style="line-height:1.7">· 재건축 단지는 현재 건물의 연식·주차·전세가율을 빼고 계산<br>· 신축은 시세 이력이 없어 시세흐름·하락방어가 비면 '산정 전'<br>· 12개월 거래 3건 미만은 '거래 적음' 표시<br>· 비교 대상은 같은 시군구 — 구가 다르면 점수를 직접 비교하지 않음</div></div>
+      </div></aside>
+    </div>
+  </div>`;
+  drawS10();
+}
+function drawS10() {
+  const w = SC.presets[s10.preset], t = scoreTable(w);
+  const ctl = $('#s10ctl'); const anno = ctl.querySelector('.an').outerHTML;
+  ctl.innerHTML = anno + '<b style="font-size:13px;margin-right:4px">관점</b>' + Object.keys(SC.presets).map(k => `<span class="chip ${k === s10.preset ? 'on' : ''}" data-p="${k}" style="cursor:pointer">${k}</span>`).join('') +
+    '<span style="width:14px"></span><b style="font-size:13px;margin-right:4px">유형</b>' + [['all', '전체'], ['아파트', '아파트'], ['재건축', '재건축']].map(([k, l]) => `<span class="chip ${k === s10.type ? 'on' : ''}" data-t="${k}" style="cursor:pointer">${l}</span>`).join('') +
+    `<span class="note" style="margin-left:auto">${Object.entries(w).filter(([, v]) => v).map(([k, v]) => AXES.find(a => a.key === k).label + ' ' + v).join(' · ')}</span>`;
+  ctl.querySelectorAll('[data-p]').forEach(e => e.onclick = () => { s10.preset = e.dataset.p; drawS10(); });
+  ctl.querySelectorAll('[data-t]').forEach(e => e.onclick = () => { s10.type = e.dataset.t; drawS10(); });
+  let rows = SC.danji.filter(o => s10.type === 'all' || o.bt === s10.type).map(o => ({o, r: t[o.id]}));
+  const sk = s10.sort;
+  rows.sort((a, b) => sk === 'score' ? ((b.r ? b.r.score : -1) - (a.r ? a.r.score : -1)) : ((b.o.axes[sk] ?? -1) - (a.o.axes[sk] ?? -1)));
+  const bar = v => v == null ? '<span class="note">–</span>' : `<div style="display:flex;align-items:center;gap:4px"><div style="width:44px;height:6px;background:var(--line3)"><i style="display:block;height:100%;width:${v}%;background:${v >= 70 ? 'var(--s80)' : v >= 40 ? 'var(--s60)' : '#ccc'}"></i></div><span class="num" style="font-size:11.5px">${Math.round(v)}</span></div>`;
+  const known = Object.fromEntries(DANJI.map(d => [d.id, d]));
+  $('#s10tbl').innerHTML = `<tr><th>순위</th><th>단지</th><th class="r">세대·연식</th><th data-s="score" style="cursor:pointer">점수 ${sk === 'score' ? '▼' : ''}</th>${AXES.map(a => `<th data-s="${a.key}" style="cursor:pointer">${a.label}${sk === a.key ? ' ▼' : ''}</th>`).join('')}</tr>` +
+    rows.map(({o, r}, k) => `<tr style="${known[o.id] ? 'background:#f3f8fd' : ''}"><td class="num">${r ? r.rank : '–'}</td><td><b>${o.name}</b><div class="note">${o.emd}${o.bt === '재건축' ? ' · 재건축' : ''}${o.flags.filter(f => f.startsWith('거래')).length ? ' · 거래 적음' : ''}</div></td><td class="r note num">${o.hh.toLocaleString()} · ${o.cy}년</td><td>${r ? `<span class="sc ${scoreClass(r.score)}">${r.score}</span>` : '<span class="sc sx">산정 전</span>'}</td>${AXES.map(a => `<td>${bar(o.axes[a.key])}</td>`).join('')}</tr>`).join('');
+  $('#s10tbl').querySelectorAll('[data-s]').forEach(e => e.onclick = () => { s10.sort = e.dataset.s; drawS10(); });
 }
 
 /* 화면 전환 */
@@ -1177,7 +1243,7 @@ function show(id) {
 document.querySelectorAll('.deck .tab').forEach(b => b.onclick = () => { location.hash = b.dataset.s; });
 window.addEventListener('hashchange', () => show(location.hash.slice(1)));
 $('#annoT').onchange = e => document.body.classList.toggle('noanno', !e.target.checked);
-renderS1(); renderS2(); renderS3(); renderS4(); renderS5(); renderS6(); renderS7(); renderS8(); renderS9();
+renderS1(); renderS2(); renderS3(); renderS4(); renderS5(); renderS6(); renderS7(); renderS8(); renderS9(); renderS10();
 show(location.hash.slice(1) || 's1');
 </script>
 </body>

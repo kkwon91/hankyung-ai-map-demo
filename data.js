@@ -146,29 +146,32 @@ window.HK = (function () {
 
   const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 
-  // H-AI 스코어 산식(안): 생활 35 + 시세흐름 25 + 호재 15 + 거래활력 15 + 전세안정 10 (모두 과거·현재 실측값)
-  function axes(d) {
-    if (!d.ms) return null;
-    const jr = d.kbJ / d.kbM;
-    return {
-      live: d.live,
-      trend: Math.round(clamp(((d.ms[d.ms.length - 1] / d.ms[0] - 1) * 100 + 10) / 50 * 100)),   // 2년 시세 변동
-      goodnews: d.gnG * 20,
-      activity: Math.round(clamp(d.trades3m / d.hh * 100 * 150)),
-      stable: Math.round(clamp(100 - Math.abs(jr - 0.5) * 250))
-    };
+  // H-AI 스코어 v1 — score.js(tools/score_build.py 생성)의 송파구 163개 단지 항목 점수를 쓴다. 표시 점수 = 비교 대상 안 백분위.
+  // 10/20 수정안: 이용자가 항목별 비중을 조절하는 '나만의 단지 점수'. 광고 계약 여부는 어떤 항목에도 들어가지 않는다.
+  const SC = window.HK_SCORE;
+  const AXES = SC.axes;
+  const DEFAULT_W = Object.fromEntries(AXES.map(a => [a.key, a.w]));
+  const _cache = {};
+  function scoreTable(w) {          // 비중 w로 송파구 전체 점수·순위 계산 → {id: {raw, score, rank, n}}
+    const key = JSON.stringify(w);
+    if (_cache[key]) return _cache[key];
+    const active = AXES.filter(a => w[a.key] > 0).map(a => a.key);
+    const need = Math.min(4, active.length);
+    const rows = SC.danji.map(o => {
+      let n = 0, dn = 0, c = 0;
+      active.forEach(k => { const v = o.axes[k]; if (v != null) { n += v * w[k]; dn += w[k]; c++; } });
+      return {id: o.id, raw: c >= need && dn ? n / dn : null};
+    }).filter(r => r.raw != null).sort((a, b) => b.raw - a.raw);
+    const N = rows.length, t = {};
+    rows.forEach((r, k) => { t[r.id] = {raw: +r.raw.toFixed(1), score: Math.round(100 * (N - k - 0.5) / N), rank: k + 1, n: N}; });
+    return (_cache[key] = t);
   }
-  // 10/20 수정안: 이용자가 항목별 비중을 조절하는 '나만의 단지 점수' — 기본값은 아래 비중, 광고 계약 여부는 어떤 항목에도 들어가지 않는다
-  const DEFAULT_W = {live:35, trend:25, goodnews:15, activity:15, stable:10};
-  function scoreWith(d, w) {
-    const a = d.axes || axes(d); if (!a) return null;
-    const sum = Object.values(w).reduce((x, y) => x + y, 0) || 1;
-    return Math.round(Object.keys(w).reduce((s, k) => s + a[k] * w[k], 0) / sum);
-  }
-  function score(d) { return scoreWith(d, DEFAULT_W); }
+  function scoreWith(d, w) { const r = scoreTable(w)[d.id]; return r ? r.score : null; }
+  const scoreOf = id => SC.danji.find(o => o.id === id);
   DANJI.forEach(d => {
     d.photo = PHOTO[d.id].src; d.photoCap = PHOTO[d.id].cap; d.photoReal = PHOTO[d.id].real;
-    d.axes = axes(d); d.score = score(d);
+    const so = scoreOf(d.id), st = scoreTable(DEFAULT_W)[d.id];
+    d.axes = so ? so.axes : null; d.score = st ? st.score : null; d.rank = st ? st.rank : null; d.rankN = st ? st.n : null; d.sm = so ? so.m : null; d.sflags = so ? so.flags : [];
     d.jr = d.kbM ? Math.round(d.kbJ / d.kbM * 100) : null;
     if (d.ms) {
       const n = d.ms.length;
@@ -182,5 +185,5 @@ window.HK = (function () {
   const scoreClass = s => s == null ? 'sx' : s >= 90 ? 's90' : s >= 80 ? 's80' : s >= 70 ? 's70' : s >= 60 ? 's60' : 'sx';
   const byId = id => DANJI.find(d => d.id === id);
 
-  return { DEFAULT_W, scoreWith, POSTCHECK, PARTNERS, LISTINGS, PHOTO, FACE, MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, won, manwon, scoreClass, byId, clamp };
+  return { SC, AXES, DEFAULT_W, scoreWith, scoreTable, scoreOf, POSTCHECK, PARTNERS, LISTINGS, PHOTO, FACE, MONTHS, DANJI, HELIO_TRADES, HELIO_WIKI, REPORTS, DONG_REPORTS, won, manwon, scoreClass, byId, clamp };
 })();
