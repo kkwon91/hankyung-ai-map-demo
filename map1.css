@@ -154,3 +154,48 @@
 .pm-vol small{font-weight:400;color:#999;font-size:10.5px}
 .pm .hk-naver.gray{filter:grayscale(.8) brightness(1.04) contrast(.92)}
 .pm-zoom{bottom:44px}
+/* ── 검색 자동완성 ── */
+.pm-search{position:relative;padding:8px 14px;border-bottom:1px solid #eee}
+.pm-search input{width:100%;border:1px solid #d5d9e0;border-radius:6px;padding:6px 10px;font:inherit;font-size:12.5px;outline:0}
+.pm-search input:focus{border-color:#1c2c64}
+.hk-ac{position:absolute;left:0;right:0;top:100%;z-index:1200;margin:2px 0 0;padding:4px 0;list-style:none;background:#fff;border:1px solid #cfd5df;box-shadow:0 8px 20px rgba(0,0,0,.14);max-height:320px;overflow:auto}
+.pm-search .hk-ac{left:14px;right:14px}
+.hk-ac li{padding:7px 12px;cursor:pointer;line-height:1.3}
+.hk-ac li b{display:block;font-size:13.5px;letter-spacing:-.3px}
+.hk-ac li small{font-size:11px;color:#888}
+.hk-ac li.on,.hk-ac li:hover{background:#eef3fb}
+.hk-ac li.none{color:#999;cursor:default;font-size:12.5px}
+.s1-search .hk-in{position:relative;padding:0 0 0 0;align-items:center}
+.s1-search .hk-in input{flex:1;border:0;outline:0;font:inherit;font-size:15px;padding:10px 16px;background:transparent}
+.s1-search .hk-in span{padding-right:14px}
+/* ── 단지 페이지 ── */
+.crumb a{color:inherit}
+.dj-mini{height:320px;border:1px solid #ddd;position:relative}
+.dj-types{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 10px}
+.dj-types button{border:1px solid #d5d9e0;background:#fff;padding:5px 10px;font-size:12.5px;font-weight:700;line-height:1.15}
+.dj-types button small{display:block;font-size:10.5px;font-weight:400;color:#888}
+.dj-types button.on{background:#121212;border-color:#121212;color:#fff}.dj-types button.on small{color:#bbb}
+.dj-hi{font-size:10.5px;font-weight:700;color:#fff;background:var(--up);padding:0 4px;margin-right:4px}
+.tbl tr.go{cursor:pointer}.tbl tr.go:hover td{background:#f5f8fc}
+.tbl tr.me td{background:#f3f8fd;font-weight:700}
+.rank-item.go{cursor:pointer}.rank-item.go:hover b{text-decoration:underline}
+.favbtn{cursor:pointer;font-size:19px;line-height:16px;color:#121212}.favbtn.on{color:var(--up)}
+.dj-empty{border-top:3px solid #c9d1e2}
+.dj-app{background:#f3f6fb;padding:9px 10px;margin:10px 0;font-size:13px}.dj-app span{color:var(--navy);font-weight:700}
+.dj-reg{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;padding:7px 0;border-bottom:1px solid #f0f0f0;font-size:13px}
+.dj-reg b{min-width:56px}.dj-reg i{font-style:normal;font-size:12px}.dj-reg i.up{color:var(--up)}.dj-reg i.down{color:var(--down)}
+/* ── 신청 양식·알림 ── */
+.hk-form h3{margin:0 0 8px;font-size:19px;letter-spacing:-.6px}
+.hk-form label{display:block;font-size:12.5px;font-weight:700;margin:9px 0 0}
+.hk-form input:not([type=checkbox]),.hk-form select,.hk-form textarea{display:block;width:100%;margin-top:4px;border:1px solid #cfd5df;padding:9px 10px;font:inherit;font-size:14px;font-weight:400;border-radius:2px}
+.hk-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hk-form .agree{font-weight:400;font-size:12px;color:#585858;display:flex;gap:6px;align-items:flex-start;margin-top:12px}
+.hk-form .demo-note{margin-top:10px;font-size:11.5px;color:#555;background:#f4f5f7;padding:6px 9px;border-left:3px solid #999}
+.hk-form .btns{display:flex;gap:6px;justify-content:flex-end;margin-top:14px}
+.hk-form .btns .btn{min-width:90px}
+.hk-toast{position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);background:#121212;color:#fff;padding:12px 18px;font-size:14px;z-index:5000;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.hk-toast.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.tbl tr.mine td{background:#f2f8ff}
+.newdot{font-size:9.5px;font-weight:700;color:#fff;background:var(--blue);padding:0 4px;vertical-align:1px}
+@media (max-width:900px){.dj-mini{height:240px}.ticker{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.hk-head .top .r span:not(:last-child){display:none}.hk-head .logo-zip{margin-top:0}.hk-head .logo-zip img{width:118px;height:39px}.s3-sticky .btn .ad{display:none}}

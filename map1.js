@@ -68,6 +68,7 @@ window.PMAP = (function () {
         <div class="pm-ph"><a class="pm-back" id="pmBack" hidden aria-label="이전">‹</a><b class="pm-ttl">부동산맵 <span>›</span></b>
           <select class="pm-sel" id="pmSel"><option value="all">수도권</option><option value="${SEOUL}">서울</option><option value="${M.sd['경기']}">경기</option><option value="${M.sd['인천']}">인천</option>
           <optgroup label="서울 25개 구">${Object.values(R).filter(r => r.lv === 'sgg' && r.sd === '서울').sort((a, b) => a.n.localeCompare(b.n)).map(r => `<option value="${r.code}">${r.n}</option>`).join('')}</optgroup></select></div>
+        <div class="pm-search"><input id="pmQ" type="search" placeholder="단지·동네 검색 (예: 헬리오시티, 잠실동)" autocomplete="off"><ul class="hk-ac" id="pmQL" hidden></ul></div>
         <div class="pm-body" id="pmBody"></div>
       </aside>
       <div class="pm-layers" id="pmLayers" role="tablist">${[['news', '뉴스'], ['price', '시세'], ['trade', '실거래'], ['high', '신고가']].map(([k, t]) => `<button data-l="${k}" class="${k === layer ? 'on' : ''}">${t}</button>`).join('')}</div>
@@ -90,6 +91,13 @@ window.PMAP = (function () {
     $('#pmBack').onclick = back;
     $('#pmSel').onchange = e => { const v = e.target.value; if (v === 'all') { map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [300, 40]}); go({k: 'home'}, true); } else openRegion(v, true); };
     syncPolys(); draw(); panel(); legend(); ticker();
+    if (window.DJP) DJP.bindSearch($('#pmQ'), $('#pmQL'), r => {
+      if (r.t === 'r') { openRegion(r.code, true); return; }
+      if (DJI[r.id]) { openDanji(r.id); return; }
+      const s = (window.HK_SEARCH || []).find(x => x[0] === r.id);
+      if (s) map.setView([s[6], s[7]], 16);
+      location.hash = 'd/' + r.id;
+    });
   }
   function ticker() {
     const sd = ['서울', '경기', '인천'].map(n => R[M.sd[n]]);
@@ -378,7 +386,7 @@ window.PMAP = (function () {
       : `<div class="pm-empty">최근 30일 신고된 거래가 없습니다${demo && demo.kbM ? ` · ${demo.py}평 시세 ${demo.kbM}억원` : ''}</div>`}
       ${reg && reg.m ? `<div class="pm-lbl">${esc(reg.n)} 시세 흐름</div><div class="pm-mini"><span>평당 ${last(reg.m).toLocaleString()}만원</span><i class="${updn(reg.c1)}">1개월 ${pctS(reg.c1)}</i><i class="${updn(reg.c12)}">1년 ${pctS(reg.c12)}</i></div>` : ''}
       ${arts.length ? `<div class="pm-lbl">${artLbl}</div>${arts.map(newsRow).join('')}` : ''}
-      <a class="pm-more" href="#s3">단지 페이지에서 시세·학군·호재 보기 <span>›</span></a>
+      <a class="pm-more" href="#d/${d.id}">단지 페이지에서 평형별 시세·실거래 보기 <span>›</span></a>
       ${pt ? `<div class="pm-ad"><div class="pm-adh"><b>이 단지 전문 중개사</b><span class="ad">광고</span></div>${partnerRow(d)}</div>`
         : `<div class="pm-open">이 단지 전문 중개사 자리가 비어 있습니다 · <a href="#s6">중개사 신청 ›</a></div>`}`;
   }
