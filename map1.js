@@ -62,6 +62,7 @@ window.PMAP = (function () {
   /* ── 틀 ── */
   function html() {
     return `<div class="pm" id="pm">
+      <div class="pm-tick" id="pmTick"></div>
       <div class="pm-map" id="pmMap"></div>
       <aside class="pm-panel" id="pmPanel">
         <div class="pm-ph"><a class="pm-back" id="pmBack" hidden aria-label="이전">‹</a><b class="pm-ttl">부동산맵 <span>›</span></b>
@@ -89,7 +90,20 @@ window.PMAP = (function () {
     el.querySelectorAll('.pm-zoom button').forEach(b => b.onclick = () => map.setZoom(map.getZoom() + +b.dataset.z));
     $('#pmBack').onclick = back;
     $('#pmSel').onchange = e => { const v = e.target.value; if (v === 'all') { map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [300, 40]}); go({k: 'home'}, true); } else openRegion(v, true); };
-    syncPolys(); draw(); panel(); legend();
+    syncPolys(); draw(); panel(); legend(); ticker();
+  }
+  function ticker() {
+    const sd = ['서울', '경기', '인천'].map(n => R[M.sd[n]]);
+    const gu = Object.values(R).filter(r => r.lv === 'sgg' && r.sd === '서울' && r.c1 != null).sort((a, b) => b.c1 - a.c1);
+    const s = R[SEOUL], ul = s.u ? last(s.u) : null;
+    const item = r => `<a data-reg="${r.code}"><b>${esc(r.lv === 'sd' ? r.n : r.n)}</b><span class="num">${last(r.m).toLocaleString()}</span><i class="num ${updn(r.c1)}">${Math.abs(r.c1) < 0.005 ? '보합' : (r.c1 > 0 ? '▲' : '▼') + Math.abs(r.c1).toFixed(2) + '%'}</i></a>`;
+    const extra = `<span class="x"><b>수도권 신고가</b><span class="num up">${sd.reduce((a, r) => a + (r.h30 || 0), 0).toLocaleString()}건</span><em>30일</em></span>` +
+      (ul != null ? `<span class="x"><b>서울 미분양</b><span class="num">${ul.toLocaleString()}호</span><em>${M.umonths[M.umonths.length - 1].slice(5)}월</em></span>` : '') +
+      (R[M.sd['경기']].u ? `<span class="x"><b>경기 미분양</b><span class="num">${last(R[M.sd['경기']].u).toLocaleString()}호</span></span>` : '');
+    const row = sd.map(item).join('') + extra + gu.map(item).join('');
+    const t = $('#pmTick');
+    t.innerHTML = `<span class="lb">아파트 시세판<small>평당 만원 · 1개월</small></span><div class="rail"><div class="mv">${row}${row}</div></div>`;
+    t.querySelectorAll('[data-reg]').forEach(a => a.onclick = () => openRegion(a.dataset.reg, true));
   }
 
   /* ── 폴리곤 ── */
@@ -142,7 +156,7 @@ window.PMAP = (function () {
     labels.clearLayers(); marks.clearLayers();
     const z = map.getZoom();
     if (z >= 14) { pins(); return; }
-    if (layer === 'news') { newsClusters(); return; }
+    if (layer === 'news') { newsClusters(); callouts(); return; }
     const occupied = [];
     visibleRegions().sort((a, b) => (b.lv === 'sgg' ? 1 : 0) - (a.lv === 'sgg' ? 1 : 0)).forEach(r => {
       const p = map.latLngToContainerPoint(r.c);
@@ -155,7 +169,22 @@ window.PMAP = (function () {
       const val = layer === 'price' ? `<em class="${updn(v)}">${pctS(v)}</em>` : layer === 'high' ? `<em class="up">${Math.round(v)}%</em>` : `<em>${(v || 0).toLocaleString()}건</em>`;
       labels.addLayer(L.marker(r.c, {interactive: false, icon: L.divIcon({className: '', html: `<div class="pm-lab"><b>${esc(r.short || r.n)}</b>${val}</div>`})}));
     });
+    callouts();
     if (layer === 'high' && z >= 13) HIGHS.forEach(({d}) => { if (map.getBounds().contains([d.la, d.ln])) marks.addLayer(L.circleMarker([d.la, d.ln], {radius: 3.5, color: '#fff', weight: 1, fillColor: '#b50000', fillOpacity: 1}).on('click', () => openDanji(d.id))); });
+  }
+  function callouts() {
+    if (!(layer === 'news' || layer === 'price') || map.getZoom() > 11.5) return;
+    const b = map.getBounds();
+    const top = HIGHS.filter(h => b.contains([h.d.la, h.d.ln]) && map.latLngToContainerPoint([h.d.la, h.d.ln]).x > 330).sort((a, c) => c.t[3] - a.t[3]);
+    const used = [];
+    top.forEach(h => {
+      if (used.length >= 3 || used.some(u => u.id === h.d.id)) return;
+      const p = map.latLngToContainerPoint([h.d.la, h.d.ln]);
+      if (used.some(u => Math.abs(u.p.x - p.x) < 210 && Math.abs(u.p.y - p.y) < 60)) return;
+      used.push({id: h.d.id, p});
+      marks.addLayer(L.marker([h.d.la, h.d.ln], {zIndexOffset: 2000, icon: L.divIcon({className: '', html:
+        `<div class="pm-call"><i></i><span><em>신고가</em><b>${esc(h.d.n.length > 8 ? h.d.n.slice(0, 8) + '…' : h.d.n)}</b> <b class="num">${eokS(h.t[3])}</b><small>전용 ${Math.round(h.t[1])}㎡ · ${h.t[0]}</small></span></div>`})}).on('click', () => openDanji(h.d.id)));
+    });
   }
   function newsClusters() {
     const z = map.getZoom(), b = map.getBounds(), groups = {};
@@ -283,6 +312,17 @@ window.PMAP = (function () {
     g += `<text x="${x(mxi)}" y="${y(mx) - 3}" font-size="10" fill="#585858" text-anchor="middle">최고 ${mx.toLocaleString()}</text>`;
     return `<svg width="100%" viewBox="0 0 ${w} ${h}" class="pm-chart">${g}</svg>`;
   }
+  function volChart(a, ms) {
+    const w = 262, h = 54, mx = Math.max(...a) || 1, bw = w / a.length;
+    let g = '';
+    a.forEach((v, i) => {
+      const bh = v / mx * (h - 16), x = i * bw + 2;
+      g += `<rect x="${x.toFixed(1)}" y="${(h - 12 - bh).toFixed(1)}" width="${(bw - 4).toFixed(1)}" height="${bh.toFixed(1)}" fill="${i === a.length - 1 ? '#142c67' : '#c3cde0'}"/>`;
+      if (i === 0 || i === a.length - 1 || ms[i].endsWith('-01')) g += `<text x="${(x + (bw - 4) / 2).toFixed(1)}" y="${h - 1}" font-size="9.5" fill="#888" text-anchor="middle">${ms[i].slice(2).replace('-', '.')}</text>`;
+    });
+    g += `<text x="${w - 2}" y="9" font-size="10" fill="#142c67" font-weight="700" text-anchor="end">${a[a.length - 1].toLocaleString()}</text>`;
+    return `<svg width="100%" viewBox="0 0 ${w} ${h}" class="pm-chart">${g}</svg>`;
+  }
   function brief(r) {
     const nm = r.lv === 'emd' ? `${r.sgg} ${r.n}` : r.lv === 'sgg' && r.sd !== '서울' ? r.n : r.n;
     const s = [];
@@ -290,6 +330,7 @@ window.PMAP = (function () {
     if (c1 != null) s.push(`${nm} 아파트 평당 매매가는 ${last(r.m).toLocaleString()}만원으로 한 달 전보다 ${Math.abs(c1) < 0.05 ? '거의 움직이지 않았다' : Math.abs(c1).toFixed(2) + '% ' + (c1 > 0 ? '올랐다' : '내렸다')}.`);
     if (c12 != null) s.push(`1년 전과 비교하면 ${Math.abs(c12).toFixed(1)}% ${c12 > 0 ? '높은' : '낮은'} 수준이다.`);
     if (r.t30) s.push(`최근 30일 실거래는 ${r.t30.toLocaleString()}건${r.h30 ? `이고 이 가운데 ${r.h30}건이 직전 최고가를 넘어섰다` : '이다'}.`);
+    if (r.u && last(r.u) != null && r.u[0] != null && r.lv !== 'emd' && (last(r.u) || r.u[0])) s.push(`미분양은 ${M.umonths[M.umonths.length - 1].slice(5).replace(/^0/, '')}월 ${last(r.u).toLocaleString()}호로 1년 전(${r.u[0].toLocaleString()}호)보다 ${last(r.u) >= r.u[0] ? '늘었다' : '줄었다'}.`);
     if (r.o3 != null && Math.abs(r.o3) >= 3) s.push(`매물은 ${last(r.o).toLocaleString()}건으로 3개월 전보다 ${Math.abs(r.o3).toFixed(0)}% ${r.o3 > 0 ? '늘었다' : '줄었다'}.`);
     return s.join(' ');
   }
@@ -307,7 +348,9 @@ window.PMAP = (function () {
       ${r.m ? chart(r) : ''}
       <div class="pm-facts"><div><span>평당 전세</span><b class="num">${last(r.j) ? last(r.j).toLocaleString() + '만원' : '–'}</b></div><div><span>전세가율</span><b class="num">${r.jr ?? '–'}%</b></div>
         <div><span>30일 실거래</span><b class="num">${(r.t30 || 0).toLocaleString()}건</b></div><div><span>신고가</span><b class="num up">${(r.h30 || 0).toLocaleString()}건</b></div>
+        <div><span>미분양</span><b class="num">${r.u && last(r.u) != null ? last(r.u).toLocaleString() + '호' : '–'}</b></div><div><span>미분양 1년</span><b class="num">${r.u && r.u[0] != null && last(r.u) != null ? (last(r.u) - r.u[0] >= 0 ? '+' : '−') + Math.abs(last(r.u) - r.u[0]).toLocaleString() : '–'}</b></div>
         <div><span>매물</span><b class="num">${r.o ? (last(r.o) || 0).toLocaleString() + '건' : '–'}</b></div><div><span>매물 3개월</span><b class="num ${r.o3 > 0 ? 'down' : r.o3 < 0 ? 'up' : ''}">${pctS(r.o3)}</b></div></div>
+      ${r.v ? `<div class="pm-vol"><div class="h"><span>월별 실거래</span><small>최근 12개월 · 건</small></div>${volChart(r.v.slice(-13, -1), M.vmonths.slice(-13, -1))}</div>` : ''}
       <div class="pm-brief"><b>데이터 브리핑</b>${brief(r)}<small>${asof} 시세·실거래 신고 자료로 자동 작성</small></div>
       ${hi.length ? `<div class="pm-lbl">이 지역 신고가</div>${hi.map(d => `<a class="pm-drow" data-dj="${d.id}"><span class="nm">${esc(d.n)}<small>전용 ${d.t.find(t => t[4])[1]}㎡ · ${d.t.find(t => t[4])[0]}</small></span><span class="v"><b class="num up">${eokS(d.t.find(t => t[4])[3])}</b><i class="num">직전 ${eokS(d.t.find(t => t[4])[5])}</i></span></a>`).join('')}` : ''}
       ${r.lead && r.lead.length ? `<div class="pm-lbl">대표 단지</div><div class="pm-chips">${r.lead.map(n => { const d = djs.find(x => x.n === n) || DJ.find(x => x.n === n); return d ? `<a data-dj="${d.id}">${esc(n)}</a>` : `<span>${esc(n)}</span>`; }).join('')}</div>` : ''}

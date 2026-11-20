@@ -119,3 +119,36 @@
 .pm-colh{display:flex;justify-content:space-between;font-size:10.5px;color:#999;border-bottom:1px solid #121212;padding:6px 0 4px;margin-top:4px}
 .pm-colh span:nth-child(2){margin-left:auto;margin-right:22px}
 .pm-hr{font-size:11.5px;font-weight:500;color:#888}
+
+/* 시세판 띠 */
+.pm-tick{position:absolute;left:0;right:0;top:0;height:32px;z-index:950;background:#fff;border-bottom:1px solid #d9dde5;display:flex;align-items:center;font-size:12px;overflow:hidden}
+.pm-tick .lb{flex:none;height:100%;display:flex;align-items:center;gap:6px;padding:0 12px 0 16px;background:#142c67;color:#fff;font-weight:700;letter-spacing:-.3px}
+.pm-tick .lb small{font-weight:400;font-size:10.5px;opacity:.75}
+.pm-tick .rail{flex:1;overflow:hidden;height:100%;position:relative}
+.pm-tick .mv{display:flex;align-items:center;height:100%;width:max-content;animation:pmtick 90s linear infinite}
+.pm-tick:hover .mv{animation-play-state:paused}
+@keyframes pmtick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.pm-tick a,.pm-tick .x{display:inline-flex;align-items:baseline;gap:5px;padding:0 13px;border-right:1px solid #eceef2;cursor:pointer;white-space:nowrap}
+.pm-tick a:hover b{text-decoration:underline}
+.pm-tick b{font-weight:700;color:#121212}
+.pm-tick .num{font-family:Tahoma,sans-serif;letter-spacing:-.3px}
+.pm-tick i{font-style:normal;font-size:11.5px}
+.pm-tick i.up,.pm-tick .up{color:var(--up)} .pm-tick i.down{color:var(--down)}
+.pm-tick .x{background:#f7f8fb;cursor:default}
+.pm-tick .x em{font-style:normal;color:#999;font-size:10.5px}
+.pm-panel{top:46px}
+.pm-layers{top:46px}
+/* 지도 위 신고가 표시 */
+.pm-call{position:relative;transform:translate(-8px,-100%);display:flex;align-items:flex-end;gap:0;pointer-events:auto;cursor:pointer}
+.pm-call i{position:absolute;left:4px;bottom:-4px;width:9px;height:9px;border-radius:50%;background:#b50000;box-shadow:0 0 0 3px rgba(181,0,0,.22)}
+.pm-call span{display:block;margin-bottom:12px;background:#fff;border:1px solid #b50000;padding:3px 8px 4px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18);font-size:12px;line-height:1.3}
+.pm-call em{font-style:normal;font-size:10px;font-weight:700;color:#fff;background:#b50000;padding:0 4px;margin-right:5px;vertical-align:1px}
+.pm-call b{letter-spacing:-.4px}
+.pm-call b.num{color:#b50000;font-family:Tahoma,sans-serif}
+.pm-call small{display:block;font-size:10.5px;color:#888}
+.pm-call:hover span{background:#121212;color:#fff;border-color:#121212}
+.pm-call:hover small{color:#ccc}
+/* 지역 카드 월별 실거래 */
+.pm-vol{margin-top:10px}
+.pm-vol .h{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:2px}
+.pm-vol small{font-weight:400;color:#999;font-size:10.5px}
