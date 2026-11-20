@@ -5,6 +5,8 @@
 window.PMAP = (function () {
   const M = window.HK_MAP, H = window.HK;
   const R = M.reg;
+  // 휴대폰에서는 패널이 지도 아래로 내려가므로 지도 왼쪽을 비워 둘 필요가 없다
+  const PW = () => (window.matchMedia && matchMedia('(max-width:600px)').matches) ? 0 : 300;
   const $ = (s, el = document) => el.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
   const SEOUL = M.sd['서울'];
@@ -13,7 +15,7 @@ window.PMAP = (function () {
 
   /* ── 숫자 표기(신문 표기: 29억5000만원 / 짧게 29.5억) ── */
   const eok = v => { const e = Math.floor(v / 10000), m = Math.round(v % 10000); return e ? `${e}억${m ? m + '만' : ''}원` : `${m}만원`; };
-  const eokS = v => v >= 10000 ? (v / 10000).toFixed(v >= 100000 ? 0 : 1).replace(/\.0$/, '') + '억' : Math.round(v / 1000) / 10 + '천';
+  const eokS = v => v >= 10000 ? (v / 10000).toFixed(v >= 1000000 ? 0 : 1).replace(/\.0$/, '') + '억' : Math.round(v).toLocaleString() + '만';
   const pctS = v => v == null ? '–' : Math.abs(v) < 0.005 ? '보합' : (v > 0 ? '+' : '−') + Math.abs(v).toFixed(Math.abs(v) < 1 ? 2 : 1) + '%';
   const updn = v => v == null ? 'flat' : v > 0.004 ? 'up' : v < -0.004 ? 'down' : 'flat';
   const ch = (a, k) => { if (!a) return null; const n = a.length - 1; return a[n] && a[n - k] ? (a[n] / a[n - k] - 1) * 100 : null; };
@@ -81,7 +83,7 @@ window.PMAP = (function () {
     el = container; el.innerHTML = html();
     map = L.map('pmMap', {zoomControl: false, scrollWheelZoom: true, wheelDebounceTime: 60, wheelPxPerZoomLevel: 90, zoomSnap: 1, zoomAnimation: false, minZoom: 9, maxZoom: 17, attributionControl: true, preferCanvas: false});
     window.addBase(map, {gray: true, className: 'pm-tiles'});
-    map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [300, 40], paddingBottomRight: [10, 10]});
+    map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [PW(), 40], paddingBottomRight: [10, 10]});
     gSgg = L.geoJSON({type: 'FeatureCollection', features: M.geo.sgg}, {style: f => style(R[f.properties.code]), onEachFeature: bindPoly});
     gEmd = L.geoJSON({type: 'FeatureCollection', features: M.geo.emd}, {style: f => style(R[f.properties.code]), onEachFeature: bindPoly});
     labels = L.layerGroup().addTo(map); marks = L.layerGroup().addTo(map);
@@ -89,7 +91,7 @@ window.PMAP = (function () {
     el.querySelectorAll('.pm-layers button').forEach(b => b.onclick = () => setLayer(b.dataset.l));
     el.querySelectorAll('.pm-zoom button').forEach(b => b.onclick = () => map.setZoom(map.getZoom() + +b.dataset.z));
     $('#pmBack').onclick = back;
-    $('#pmSel').onchange = e => { const v = e.target.value; if (v === 'all') { map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [300, 40]}); go({k: 'home'}, true); } else openRegion(v, true); };
+    $('#pmSel').onchange = e => { const v = e.target.value; if (v === 'all') { map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [PW(), 40]}); go({k: 'home'}, true); } else openRegion(v, true); };
     syncPolys(); draw(); panel(); legend(); ticker();
     if (window.DJP) DJP.bindSearch($('#pmQ'), $('#pmQL'), r => {
       if (r.t === 'r') { openRegion(r.code, true); return; }
@@ -167,7 +169,7 @@ window.PMAP = (function () {
     const occupied = [];
     visibleRegions().sort((a, b) => (b.lv === 'sgg' ? 1 : 0) - (a.lv === 'sgg' ? 1 : 0)).forEach(r => {
       const p = map.latLngToContainerPoint(r.c);
-      if (p.x < 300) return;
+      if (p.x < PW()) return;
       const box = [p.x - 30, p.y - 14, p.x + 30, p.y + 14];
       if (occupied.some(o => !(box[2] < o[0] || box[0] > o[2] || box[3] < o[1] || box[1] > o[3]))) return;
       occupied.push(box);
@@ -182,7 +184,7 @@ window.PMAP = (function () {
   function callouts() {
     if (!(layer === 'news' || layer === 'price') || map.getZoom() > 11.5) return;
     const b = map.getBounds();
-    const top = HIGHS.filter(h => b.contains([h.d.la, h.d.ln]) && map.latLngToContainerPoint([h.d.la, h.d.ln]).x > 330).sort((a, c) => c.t[3] - a.t[3]);
+    const top = HIGHS.filter(h => b.contains([h.d.la, h.d.ln]) && map.latLngToContainerPoint([h.d.la, h.d.ln]).x > PW() + 30).sort((a, c) => c.t[3] - a.t[3]);
     const used = [];
     top.forEach(h => {
       if (used.length >= 3 || used.some(u => u.id === h.d.id)) return;
@@ -205,7 +207,7 @@ window.PMAP = (function () {
     const occ = [];
     Object.entries(groups).sort((a, b) => b[1].length - a[1].length).forEach(([k, arr]) => {
       const r = R[k], p = map.latLngToContainerPoint(r.c);
-      if (p.x < 300) return;
+      if (p.x < PW()) return;
       const box = [p.x - 24, p.y - 18, p.x + 24, p.y + 18];
       if (occ.some(o => !(box[2] < o[0] || box[0] > o[2] || box[3] < o[1] || box[1] > o[3]))) return;
       occ.push(box);
@@ -216,7 +218,7 @@ window.PMAP = (function () {
   const repT = d => d.t.length ? [...d.t].sort((a, b) => Math.abs(a[1] - 84) - Math.abs(b[1] - 84) || (b[0] > a[0] ? 1 : -1))[0] : null;
   function pins() {
     const b = map.getBounds(), z = map.getZoom();
-    const list = DJ.filter(d => b.contains([d.la, d.ln]) && map.latLngToContainerPoint([d.la, d.ln]).x > 300)
+    const list = DJ.filter(d => b.contains([d.la, d.ln]) && map.latLngToContainerPoint([d.la, d.ln]).x > PW())
       .filter(d => layer !== 'high' || d.nh).sort((a, b) => (PARTNER[b.id] ? 1e6 : 0) + b.hh - (PARTNER[a.id] ? 1e6 : 0) - a.hh);
     const occ = [];
     list.forEach(d => {
@@ -265,32 +267,32 @@ window.PMAP = (function () {
     const r = sc && sc.sd === '서울' ? sc : s;
     return `<div class="pm-kpi">
       <div><span>${r === s ? '서울' : r.n} 평당 매매</span><b class="num">${last(r.m).toLocaleString()}<small>만원</small></b><i class="${updn(r.c1)}">1개월 ${pctS(r.c1)}</i></div>
-      <div><span>30일 실거래</span><b class="num">${(r.t30 || 0).toLocaleString()}<small>건</small></b><i>${W0}~${W1} 신고</i></div>
-      <div><span>신고가</span><b class="num up">${(r.h30 || 0).toLocaleString()}<small>건</small></b><i>직전 최고가 경신</i></div></div>`;
+      <div><span>30일 실거래</span><b class="num">${(r.t30 || 0).toLocaleString()}<small>건</small></b><i>최근 한 달</i></div>
+      <div><span>신고가</span><b class="num up">${(r.h30 || 0).toLocaleString()}<small>건</small></b><i>최고가 경신</i></div></div>`;
   }
   function inView(a) { return map.getBounds().contains([a.la, a.ln]); }
   function home() {
     const z = map.getZoom();
     if (layer === 'news') {
-      const arts = NEWS.filter(inView).slice(0, 30);
+      const arts = NEWS.filter(inView).slice(0, PW() ? 30 : 10);
       return kpis() + `<div class="pm-sub">이 지도 안 기사 <b>${NEWS.filter(inView).length.toLocaleString()}</b>건</div>` + arts.map(newsRow).join('') + foot();
     }
     if (layer === 'price') {
       const rs = visibleRegions().filter(r => r[metric] != null).sort((a, b) => b[metric] - a[metric]);
       return `<div class="pm-h">지역별 아파트 시세 <span class="pm-seg">${[['c1', '1개월'], ['c12', '1년']].map(([k, t]) => `<button data-metric="${k}" class="${metric === k ? 'on' : ''}">${t}</button>`).join('')}</span></div>
-        <div class="pm-sub">평당 매매가 · ${asof} 기준 · ${z >= 12 ? '동' : '시·군·구'} ${rs.length}곳</div><div class="pm-colh"><span>지역</span><span>최근 1년</span><span>평당가(만원)·변동</span></div>` +
+        <div class="pm-sub">평당 매매가 · ${asof} · ${z >= 12 ? '동' : '시·군·구'} ${rs.length}곳</div><div class="pm-colh"><span>지역</span><span>최근 1년</span><span>평당가(만원)·변동</span></div>` +
         rs.slice(0, 40).map(r => `<a class="pm-rrow" data-reg="${r.code}"><span class="nm">${esc(r.lv === 'sgg' && r.sd !== '서울' ? r.n : r.n)}<small>${r.lv === 'emd' ? r.sgg : r.sd}</small></span>${spark(r.m.slice(-13), 54, 20)}<span class="v"><b class="num">${last(r.m).toLocaleString()}</b><i class="num ${updn(r[metric])}">${pctS(r[metric])}</i></span></a>`).join('') + foot();
     }
     if (layer === 'trade') {
       const rs = visibleRegions().sort((a, b) => (b.t30 || 0) - (a.t30 || 0));
       const ds = DJ.filter(d => inView({la: d.la, ln: d.ln}) && d.nt).sort((a, b) => b.nt - a.nt).slice(0, 6);
-      return `<div class="pm-h">최근 30일 실거래</div><div class="pm-sub">${W0}~${W1} 계약 · 해제 거래 제외 · 신고 기한이 30일이라 늘어날 수 있음</div>
+      return `<div class="pm-h">최근 30일 실거래</div><div class="pm-sub">${W0}~${W1} 계약 · 해제 거래 제외</div>
         <div class="pm-lbl">거래 많은 단지</div>` + ds.map(d => `<a class="pm-drow" data-dj="${d.id}"><span class="nm">${esc(d.n)}<small>${d.emd} · ${d.hh.toLocaleString()}세대</small></span><span class="v"><b class="num">${d.nt}건</b><i class="num">최근 ${eokS(d.t[0][3])}</i></span></a>`).join('') +
         `<div class="pm-lbl">지역별</div>` + rs.slice(0, 30).map(r => `<a class="pm-rrow" data-reg="${r.code}"><span class="nm">${esc(r.n)}<small>${r.lv === 'emd' ? r.sgg : r.sd}</small></span>${bars((r.v || []).slice(-13, -1), 54, 20)}<span class="v"><b class="num">${(r.t30 || 0).toLocaleString()}건</b><i class="num">${r.v ? '월평균 ' + Math.round(r.v.slice(-13, -1).reduce((a, b) => a + b, 0) / 12) : ''}</i></span></a>`).join('') + foot();
     }
     const hs = HIGHS.filter(h => inView({la: h.d.la, ln: h.d.ln})).sort((a, b) => b.t[3] - a.t[3]);
     const tv = DJ.filter(d => inView({la: d.la, ln: d.ln})).reduce((a, d) => a + d.nt, 0);
-    return `<div class="pm-h"><span>신고가 <b class="up">${hs.length.toLocaleString()}</b>건</span><span class="pm-hr">실거래 ${tv.toLocaleString()}건 중 ${tv ? Math.round(hs.length / tv * 100) : 0}%</span></div><div class="pm-sub">${W0}~${W1} 계약 중 같은 평형의 2017년 이후 최고가를 넘은 거래 · 가격 높은 순</div>` +
+    return `<div class="pm-h"><span>신고가 <b class="up">${hs.length.toLocaleString()}</b>건</span><span class="pm-hr">실거래 ${tv.toLocaleString()}건 중 ${tv ? Math.round(hs.length / tv * 100) : 0}%</span></div><div class="pm-sub">${W0}~${W1} 계약 중 2017년 이후 최고가를 넘긴 거래 · 비싼 순</div>` +
       hs.slice(0, 40).map(({d, t}) => `<a class="pm-drow" data-dj="${d.id}"><span class="nm">${esc(d.n)}<small>${d.sgg} ${d.emd} · 전용 ${t[1]}㎡ · ${t[2]}층 · ${t[0]}</small></span><span class="v"><b class="num up">${eokS(t[3])}</b><i class="num">직전 ${eokS(t[5])}</i></span></a>`).join('') + foot();
   }
   const foot = () => `<a class="pm-foot" href="#s9">우리 단지 전문 중개사 찾기 <span>›</span></a>`;
@@ -331,15 +333,24 @@ window.PMAP = (function () {
     return `<svg width="100%" viewBox="0 0 ${w} ${h}" class="pm-chart">${g}</svg>`;
   }
   function brief(r) {
-    const nm = r.lv === 'emd' ? `${r.sgg} ${r.n}` : r.lv === 'sgg' && r.sd !== '서울' ? r.n : r.n;
+    const glue = s => s.replace(/(\d)(%|억|만원|원|건|층|㎡|호|배)(?=[가-힣])/g, '$1$2⁠');
+    const m = last(r.m), c1 = r.c1, c12 = r.c12, t = r.t30 || 0, h = r.h30 || 0, o3 = r.o3;
+    const p = v => Math.abs(v).toFixed(Math.abs(v) < 1 ? 2 : 1) + '%';
+    let head, used;
+    if (t >= 10 && h / t >= .2) { head = `한 달 거래 ${t.toLocaleString()}건 중 ${h}건이 신고가`; used = 'h'; }
+    else if (c1 != null && Math.abs(c1) >= .4) { head = `한 달 새 아파트값 ${p(c1)} ${c1 > 0 ? '상승' : '하락'}`; used = 'c1'; }
+    else if (o3 != null && Math.abs(o3) >= 15) { head = `석 달 새 매물 ${Math.round(Math.abs(o3))}% ${o3 > 0 ? '증가' : '감소'}`; used = 'o'; }
+    else if (c12 != null && Math.abs(c12) >= 5) { head = `1년 새 아파트값 ${p(c12)} ${c12 > 0 ? '상승' : '하락'}`; used = 'c12'; }
+    else if (c1 != null && Math.abs(c1) >= .1) { head = `한 달 새 아파트값 ${p(c1)} ${c1 > 0 ? '상승' : '하락'}`; used = 'c1'; }
+    else { head = m ? `평당 ${m.toLocaleString()}만원, 한 달 전과 비슷` : '시세 자료 없음'; used = 'm'; }
     const s = [];
-    const c1 = r.c1, c12 = r.c12;
-    if (c1 != null) s.push(`${nm} 아파트 평당 매매가는 ${last(r.m).toLocaleString()}만원으로 한 달 전보다 ${Math.abs(c1) < 0.05 ? '거의 움직이지 않았다' : Math.abs(c1).toFixed(2) + '% ' + (c1 > 0 ? '올랐다' : '내렸다')}.`);
-    if (c12 != null) s.push(`1년 전과 비교하면 ${Math.abs(c12).toFixed(1)}% ${c12 > 0 ? '높은' : '낮은'} 수준이다.`);
-    if (r.t30) s.push(`최근 30일 실거래는 ${r.t30.toLocaleString()}건${r.h30 ? `이고 이 가운데 ${r.h30}건이 직전 최고가를 넘어섰다` : '이다'}.`);
-    if (r.u && last(r.u) != null && r.u[0] != null && r.lv !== 'emd' && (last(r.u) || r.u[0])) s.push(`미분양은 ${M.umonths[M.umonths.length - 1].slice(5).replace(/^0/, '')}월 ${last(r.u).toLocaleString()}호로 1년 전(${r.u[0].toLocaleString()}호)보다 ${last(r.u) >= r.u[0] ? '늘었다' : '줄었다'}.`);
-    if (r.o3 != null && Math.abs(r.o3) >= 3) s.push(`매물은 ${last(r.o).toLocaleString()}건으로 3개월 전보다 ${Math.abs(r.o3).toFixed(0)}% ${r.o3 > 0 ? '늘었다' : '줄었다'}.`);
-    return s.join(' ');
+    if (m && used !== 'm') s.push(`평당 ${m.toLocaleString()}만원${c12 != null && used !== 'c12' ? `으로 1년 전보다 ${p(c12)} ${c12 >= 0 ? '높다' : '낮다'}` : '이다'}.`);
+    else if (c12 != null && used === 'm') s.push(`1년 전보다는 ${p(c12)} ${c12 >= 0 ? '높다' : '낮다'}.`);
+    if (used !== 'h' && t) s.push(`최근 한 달 ${t.toLocaleString()}건이 거래됐고${h ? ` ${h}건이 신고가였다` : ' 신고가는 없었다'}.`);
+    else if (used !== 'o' && o3 != null && Math.abs(o3) >= 10) s.push(`매물은 석 달 새 ${Math.round(Math.abs(o3))}% ${o3 > 0 ? '늘었다' : '줄었다'}.`);
+    const u = r.u && last(r.u), u0 = r.u && r.u[0];
+    if (r.lv !== 'emd' && u != null && u0 != null && (u || u0) && Math.abs(u - u0) >= Math.max(50, u0 * .2)) s.push(`미분양은 1년 새 ${u0.toLocaleString()}호에서 ${u.toLocaleString()}호로 ${u > u0 ? '늘었다' : '줄었다'}.`);
+    return {head: glue(head), body: glue(s.slice(0, 2).join(' '))};
   }
   function regionCard(r, focus) {
     if (!r) return home();
@@ -347,7 +358,7 @@ window.PMAP = (function () {
     const djs = DJ.filter(d => (r.lv === 'emd' ? d.code === r.code : r.lv === 'sgg' ? sggOf(d.code) === r.code || (d.demo && r.n === d.sgg && r.sd === '서울') : d.sd === r.sd));
     const hi = djs.filter(d => d.nh).sort((a, b) => b.t[0][3] - a.t[0][3]).slice(0, 3);
     const pts = djs.filter(d => PARTNER[d.id]);
-    const newsBlock = `<div class="pm-lbl">이 지역 한경 기사 <span>${arts.length}건</span></div>${arts.slice(0, focus === 'news' ? 8 : 3).map(newsRow).join('') || '<div class="pm-empty">아직 이 지역 기사가 없습니다</div>'}`;
+    const newsBlock = `<div class="pm-lbl">이 지역 한경 기사 <span>${arts.length}건</span></div>${arts.slice(0, focus === 'news' ? 8 : 3).map(newsRow).join('') || '<div class="pm-empty">아직 이 지역 기사가 없습니다.</div>'}`;
     return `<div class="pm-rhead"><small>${r.lv === 'emd' ? `${r.sd} ${r.sgg}` : r.lv === 'sgg' ? r.sd : '광역'}</small><h3>${esc(r.n)}</h3></div>
       ${focus === 'news' ? newsBlock : ''}
       <div class="pm-big"><div><span>평당 매매</span><b class="num">${last(r.m) ? last(r.m).toLocaleString() : '–'}<small>만원</small></b></div>
@@ -358,7 +369,7 @@ window.PMAP = (function () {
         <div><span>미분양</span><b class="num">${r.u && last(r.u) != null ? last(r.u).toLocaleString() + '호' : '–'}</b></div><div><span>미분양 1년</span><b class="num">${r.u && r.u[0] != null && last(r.u) != null ? (last(r.u) - r.u[0] >= 0 ? '+' : '−') + Math.abs(last(r.u) - r.u[0]).toLocaleString() : '–'}</b></div>
         <div><span>매물</span><b class="num">${r.o ? (last(r.o) || 0).toLocaleString() + '건' : '–'}</b></div><div><span>매물 3개월</span><b class="num ${r.o3 > 0 ? 'down' : r.o3 < 0 ? 'up' : ''}">${pctS(r.o3)}</b></div></div>
       ${r.v ? `<div class="pm-vol"><div class="h"><span>월별 실거래</span><small>최근 12개월 · 건</small></div>${volChart(r.v.slice(-13, -1), M.vmonths.slice(-13, -1))}</div>` : ''}
-      <div class="pm-brief"><b>데이터 브리핑</b>${brief(r)}<small>${asof} 시세·실거래 신고 자료로 자동 작성</small></div>
+      ${(B => `<div class="pm-brief"><b>숫자로 본 ${esc(r.n)}</b><strong>${esc(B.head)}</strong>${esc(B.body)}<small>${asof} 시세·실거래 기준 자동 작성</small></div>`)(brief(r))}
       ${hi.length ? `<div class="pm-lbl">이 지역 신고가</div>${hi.map(d => `<a class="pm-drow" data-dj="${d.id}"><span class="nm">${esc(d.n)}<small>전용 ${d.t.find(t => t[4])[1]}㎡ · ${d.t.find(t => t[4])[0]}</small></span><span class="v"><b class="num up">${eokS(d.t.find(t => t[4])[3])}</b><i class="num">직전 ${eokS(d.t.find(t => t[4])[5])}</i></span></a>`).join('')}` : ''}
       ${r.lead && r.lead.length ? `<div class="pm-lbl">대표 단지</div><div class="pm-chips">${r.lead.map(n => { const d = djs.find(x => x.n === n) || DJ.find(x => x.n === n); return d ? `<a data-dj="${d.id}">${esc(n)}</a>` : `<span>${esc(n)}</span>`; }).join('')}</div>` : ''}
       ${focus === 'news' ? '' : newsBlock}
@@ -382,13 +393,13 @@ window.PMAP = (function () {
       ${demo && demo.photo ? `<div class="pm-photo"><img src="${demo.photo}" alt=""></div>` : ''}
       <div class="pm-lbl">최근 30일 실거래 <span>${d.nt}건</span></div>
       ${d.t.length ? `<table class="pm-tr"><thead><tr><th>계약</th><th>전용</th><th>층</th><th>가격</th></tr></thead><tbody>${d.t.slice(0, 6).map(t => `<tr><td>${t[0]}</td><td>${t[1]}㎡</td><td>${t[2]}</td><td class="num ${t[4] ? 'up' : ''}">${eok(t[3])}${t[4] ? '<i>신고가</i>' : ''}${t[6] ? '<i class="g">직거래</i>' : ''}</td></tr>`).join('')}</tbody></table>
-         ${d.t.find(t => t[4]) ? `<div class="pm-sub">신고가는 같은 평형 직전 최고가 ${eok(d.t.find(t => t[4])[5])}를 넘은 거래</div>` : ''}`
-      : `<div class="pm-empty">최근 30일 신고된 거래가 없습니다${demo && demo.kbM ? ` · ${demo.py}평 시세 ${demo.kbM}억원` : ''}</div>`}
+         ${d.t.find(t => t[4]) ? `<div class="pm-sub">신고가: 직전 최고 ${eok(d.t.find(t => t[4])[5])}를 넘김</div>` : ''}`
+      : `<div class="pm-empty">최근 한 달 거래 없음${demo && demo.kbM ? ` · ${demo.py}평 시세 ${demo.kbM}억원` : ''}</div>`}
       ${reg && reg.m ? `<div class="pm-lbl">${esc(reg.n)} 시세 흐름</div><div class="pm-mini"><span>평당 ${last(reg.m).toLocaleString()}만원</span><i class="${updn(reg.c1)}">1개월 ${pctS(reg.c1)}</i><i class="${updn(reg.c12)}">1년 ${pctS(reg.c12)}</i></div>` : ''}
       ${arts.length ? `<div class="pm-lbl">${artLbl}</div>${arts.map(newsRow).join('')}` : ''}
-      <a class="pm-more" href="#d/${d.id}">단지 페이지에서 평형별 시세·실거래 보기 <span>›</span></a>
+      <a class="pm-more" href="#d/${d.id}">평형별 시세·실거래 전체 보기 <span>›</span></a>
       ${pt ? `<div class="pm-ad"><div class="pm-adh"><b>이 단지 전문 중개사</b><span class="ad">광고</span></div>${partnerRow(d)}</div>`
-        : `<div class="pm-open">이 단지 전문 중개사 자리가 비어 있습니다 · <a href="#s6">중개사 신청 ›</a></div>`}`;
+        : `<div class="pm-open">전문 중개사 자리 비어 있음 · <a href="#d/${d.id}">중개사 신청 ›</a></div>`}`;
   }
 
   /* ── 동작 ── */
@@ -399,7 +410,7 @@ window.PMAP = (function () {
   }
   function openRegion(code, fly, focus) {
     const r = R[code]; if (!r) return;
-    if (fly) { const ly = polys[code]; if (ly) map.fitBounds(ly.getBounds(), {paddingTopLeft: [300, 30], paddingBottomRight: [20, 20], maxZoom: 14}); }
+    if (fly) { const ly = polys[code]; if (ly) map.fitBounds(ly.getBounds(), {paddingTopLeft: [PW(), 30], paddingBottomRight: [20, 20], maxZoom: 14}); }
     go({k: 'region', code, focus});
   }
   function openDanji(id) {

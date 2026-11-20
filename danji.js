@@ -60,14 +60,27 @@ window.DJP = (function () {
   }
 
   function brief(x, t) {
-    if (!t) return `${x.n}은 ${x.hh.toLocaleString()}세대 단지다. 시세 자료가 쌓이면 흐름을 함께 보여준다.`;
-    const m = last(t[2]), c12 = chg(t[2], 12), j = last(t[3]);
-    const s = [`${x.n} 전용 ${t[0]}㎡ 시세는 ${eok(m * 100)}으로${c12 != null ? ` 1년 전보다 ${Math.abs(c12).toFixed(1)}% ${c12 >= 0 ? '올랐다' : '내렸다'}` : ' 집계됐다'}.`];
-    const tr = x.tr.filter(r => Math.abs(r[1] - t[0]) < 3);
-    if (tr.length) s.push(`최근 1년 같은 면적 실거래는 ${tr.length}건으로 가장 최근 거래는 ${+tr[0][0].slice(3, 5)}월 ${+tr[0][0].slice(6, 8)}일 ${eok(tr[0][3])}(${tr[0][2]}층)이다.`);
-    if (t[4]) { const gap = (m * 100 / t[4][0] - 1) * 100; s.push(`2017년 이후 최고가는 ${t[4][1]}년 ${eok(t[4][0])}으로, 지금 시세는 그보다 ${Math.abs(gap).toFixed(0)}% ${gap >= 0 ? '높다' : '낮다'}.`); }
-    if (j && m) s.push(`전세가율은 ${Math.round(j / m * 100)}%다.`);
-    return s.join(' ').replace(/(\d)(%|억|만원|원|건|층|㎡)(?=[가-힣])/g, '$1$2⁠');
+    const glue = s => s.replace(/(\d)(%|억|만원|원|건|층|㎡|호|배)(?=[가-힣])/g, '$1$2⁠');
+    if (!t) return {head: `${x.hh.toLocaleString()}세대 단지`, body: '시세 자료가 아직 없습니다.'};
+    const m = last(t[2]) * 100, c12 = chg(t[2], 12), j = last(t[3]) * 100, pa = t[0];
+    const tr = x.tr.filter(r => Math.abs(r[1] - pa) < 3);
+    const p = v => Math.abs(v).toFixed(1) + '%';
+    const md = r => `${+r[0].slice(3, 5)}월 ${+r[0].slice(6, 8)}일`;
+    const recentHi = tr.find(r => r[6] && r[0] >= '26.08');
+    const gap = t[4] ? (m / t[4][0] - 1) * 100 : null;
+    const jr = m && j ? Math.round(j / m * 100) : null;
+    let head, used;
+    if (recentHi) { head = `${pa}㎡ ${md(recentHi)} ${eok(recentHi[3])}, 최고가 경신`; used = 'hi'; }
+    else if (gap != null && gap <= -10) { head = `최고가보다 ${Math.round(-gap)}% 낮은 시세`; used = 'gap'; }
+    else if (c12 != null && Math.abs(c12) >= 2) { head = `1년 새 시세 ${p(c12)} ${c12 > 0 ? '상승' : '하락'}`; used = 'c12'; }
+    else if (jr != null && jr >= 75) { head = `전세가율 ${jr}%, 매매가와 ${eokS(m - j)} 차이`; used = 'jr'; }
+    else { head = `${pa}㎡ 시세 ${eokS(m)}, 1년 전과 비슷`; used = 'm'; }
+    const s = [];
+    if (used !== 'm') s.push(`전용 ${pa}㎡ 시세는 ${eok(m)}${c12 != null && used !== 'c12' ? `으로 1년 전보다 ${p(c12)} ${c12 >= 0 ? '높다' : '낮다'}` : '이다'}.`);
+    if (used === 'gap') s.push(`최고가는 ${t[4][1]}년 ${eok(t[4][0])}이었다.`);
+    else if (used !== 'hi' && tr.length) s.push(`최근 거래는 ${md(tr[0])} ${eok(tr[0][3])}(${tr[0][2]}층).`);
+    if (s.length < 2 && used !== 'jr' && jr != null) s.push(`전세가율은 ${jr}%다.`);
+    return {head: glue(head), body: glue(s.slice(0, 2).join(' '))};
   }
 
   let cur = null, curType = null, miniMap = null;
@@ -111,52 +124,52 @@ window.DJP = (function () {
       <div class="dtitle">
         <div><div class="ntag"><span class="b ai">단지 분석</span><span class="c bl">${esc(x.sgg)} ${esc(x.emd)}</span>${x.bt === '재건축' ? '<span class="c">재건축</span>' : ''}</div><h1>${esc(x.n)}</h1>
         <div class="meta">${[x.hh ? x.hh.toLocaleString() + '세대' : '', x.dongs ? x.dongs + '개 동' : '', x.cd ? x.cd.replace('-', '.') + ' 입주' : '', x.ft ? `최고 ${x.ft}층` : '', x.pk && x.hh ? `세대당 주차 ${(x.pk / x.hh).toFixed(2)}대` : '', x.heat || ''].filter(Boolean).join(' · ')}</div>
-        <div class="meta" style="margin-top:2px">${esc(x.ar || x.ab || '')}${x.cn ? ' · 시공 ' + esc(x.cn) : ''}</div></div>
+        <div class="meta" style="margin-top:2px">${esc(x.ar || x.ab || '')}${x.cn ? ' · 시공 ' + esc(x.cn) : ''}</div></div>
         <div class="tools"><span class="favbtn ${fav ? 'on' : ''}" id="djFav" title="관심단지">${fav ? '♥' : '♡'}</span><span>${IC.share}</span></div></div>
       <div class="s3-body">
         <div>
           ${photo ? `<figure class="hero" style="margin:0"><div class="img"><img class="ph" src="${photo}" alt=""></div><figcaption>${demo.photoCap || ''}</figcaption></figure>`
-            : `<div class="dj-mini" id="djMini"></div><div class="note" style="margin-top:4px">지도의 가격은 단지별 전용 84㎡ 안팎 시세 · 누르면 그 단지 페이지로</div>`}
+            : `<div class="dj-mini" id="djMini"></div><div class="note" style="margin-top:4px">지도 가격은 단지별 84㎡ 안팎 시세 · 누르면 그 단지로 이동</div>`}
           <div class="ticker">
             <div><div class="l">매매 시세${t ? ` ${t[0]}㎡` : ''}</div><div class="v">${m ? eokS(m * 100) : '–'}</div><div class="s note">${months[months.length - 1].replace('-', '.')} 기준</div>${t ? DJC.spark(t[2].slice(-13)) : ''}</div>
             <div><div class="l">전세 시세</div><div class="v">${j ? eokS(j * 100) : '–'}</div><div class="s note">전세가율 ${m && j ? Math.round(j / m * 100) + '%' : '–'}</div></div>
             <div><div class="l">1년 변동</div><div class="v ${ud(c12)}">${pctS(c12)}</div><div class="s note">2년 ${pctS(c24)}</div></div>
             <div><div class="l">2017년 이후 최고가</div><div class="v">${t && t[4] ? eokS(t[4][0]) : '–'}</div><div class="s note">${t && t[4] ? `${t[4][1]}년 · 현재 ${(m * 100 / t[4][0] * 100).toFixed(0)}% 수준` : '거래 없음'}</div></div>
-            <div><div class="l">1년 실거래</div><div class="v">${x.n1y}건</div><div class="s note">국토부 신고 · 해제 제외</div>${x.vm ? DJC.spark(x.vm) : ''}</div>
+            <div><div class="l">1년 실거래</div><div class="v">${x.n1y}건</div><div class="s note">해제 거래 제외</div>${x.vm ? DJC.spark(x.vm) : ''}</div>
           </div>
-          <div class="aisum" style="margin-top:22px"><div class="h">데이터 브리핑</div>${esc(brief(x, t))}<div class="src">시세·국토부 실거래 신고 자료로 자동 작성 · ${months[months.length - 1].replace('-', '.')} 기준</div></div>
+          ${(B => `<div class="aisum" style="margin-top:22px"><div class="h">숫자로 본 ${esc(x.n)}</div><strong class="bh">${esc(B.head)}</strong>${esc(B.body)}<div class="src">${months[months.length - 1].replace('-', '.')} 시세·국토부 실거래 기준 자동 작성</div></div>`)(brief(x, t))}
 
           <div class="s3-sec"><div class="sec-tit">시세와 실거래 <span class="sub">${t ? `전용 ${t[0]}㎡ · ` : ''}최근 2년 시세 · 1년 실거래</span></div>
             ${types.length > 1 ? `<div class="dj-types">${types.map((q, i) => `<button data-ti="${i}" class="${i === curType ? 'on' : ''}">${q[0]}㎡<small>${pyeongOf(q[0])}평</small></button>`).join('')}</div>` : ''}
             ${t ? '<div class="djc" id="djcPrice"></div>' : '<div class="note" style="padding:30px 0">시세 자료가 아직 없습니다</div>'}
-            <div class="src">선은 월별 시세, 점은 국토부 실거래(해제 제외)&nbsp;· 빨간 선은 같은 면적 2017년 이후 최고가&nbsp;· 그래프에 마우스를 올리면 달마다 값이 나옵니다</div></div>
+            <div class="src">실거래는 계약일 기준, 해제 거래 제외</div></div>
 
-          ${x.vm && x.vm.some(Boolean) ? `<div class="s3-sec"><div class="sec-tit">월별 실거래 <span class="sub">모든 면적 · 최근 12개월 ${x.vm.reduce((a, b) => a + b, 0)}건</span></div><div class="djc" id="djcVol"></div><div class="src">계약일 기준 · 11월은 19일까지 신고분이고, 신고 기한이 30일이라 늘어날 수 있음</div></div>` : ''}
+          ${x.vm && x.vm.some(Boolean) ? `<div class="s3-sec"><div class="sec-tit">월별 실거래 <span class="sub">모든 면적 · 최근 12개월 ${x.vm.reduce((a, b) => a + b, 0)}건</span></div><div class="djc" id="djcVol"></div><div class="src">계약일 기준 · 11월은 19일까지 신고분</div></div>` : ''}
 
           <div class="s3-sec"><div class="sec-tit">실거래 <span class="sub">${t ? `전용 ${t[0]}㎡ · ` : ''}최근 1년 ${trT.length}건</span></div>
             ${trT.length ? `<table class="tbl"><tr><th>계약일</th><th>전용</th><th>층</th><th class="r">거래가</th><th></th></tr>${trT.slice(0, 15).map(r => `<tr><td class="num">${r[0]}</td><td>${r[1]}㎡</td><td>${r[2]}층</td><td class="r num"><b class="${r[6] ? 'up' : ''}">${eok(r[3])}</b></td><td class="note">${r[6] ? '<span class="dj-hi">최고가</span>' : ''}${r[5] ? '직거래' : ''}</td></tr>`).join('')}</table>`
-              : '<div class="note" style="padding:14px 0">최근 1년 이 면적 실거래가 없습니다.</div>'}
-            <div class="src">국토교통부 실거래가 공개시스템 · 해제 신고 제외 · '최고가'는 2017년 이후 같은 면적 최고가 이상</div></div>
+              : '<div class="note" style="padding:14px 0">최근 1년 이 면적 거래 없음</div>'}
+            <div class="src">국토교통부 실거래가 · 최고가는 2017년 이후 같은 면적 기준</div></div>
 
-          <div class="s3-sec"><div class="sec-tit">${esc(x.emd)} 단지 비교 <span class="sub">전용 84㎡ 안팎 · 세대수 큰 순</span></div>
+          <div class="s3-sec"><div class="sec-tit">${esc(x.emd)} 이웃 단지 <span class="sub">84㎡ 안팎 시세 · 세대수 큰 순</span></div>
             <table class="tbl dj-cmp"><tr><th>단지</th><th class="r c-hh">세대·입주</th><th class="r">매매 시세</th><th class="r">1년</th><th class="r">전세가율</th></tr>
             ${rows.map(o => `<tr class="${o.k === id ? 'me' : 'go'}" ${o.k === id ? '' : `data-go="${o.k}"`}><td><b>${esc(o.y.n)}</b>${o.q ? `<div class="note">${o.q[0]}㎡</div>` : ''}</td><td class="r note num c-hh">${o.y.hh.toLocaleString()} · ${o.y.cd ? o.y.cd.slice(0, 4) : ''}</td><td class="r num"><span class="djc-cell">${o.m ? `<i style="width:${Math.round(o.m / cmpMax * 64)}px"></i>` : ''}${o.m ? eokS(o.m * 100) : '–'}</span></td><td class="r num ${ud(o.c)}">${pctS(o.c)}</td><td class="r num">${o.jr ? o.jr + '%' : '–'}</td></tr>`).join('')}</table></div>
 
           <div class="s3-sec"><div class="sec-tit">한경 뉴스 <span class="sub">${arts.length ? `'${esc(key)}'가 나온 기사` : `${esc(x.emd)} 기사`}</span></div>
             ${[...arts, ...artsNear].length ? [...arts, ...artsNear].map(a => `<a class="nitem" href="${a[3]}" target="_blank" rel="noopener"><div style="flex:1;min-width:0"><div class="t">${esc(a[1])}</div><div class="date">${a[8]}</div></div><div class="thumb"><img class="ph" src="${a[2]}" alt="" loading="lazy"></div></a>`).join('')
-              : `<div class="note" style="padding:12px 0">이 단지·동네를 다룬 동네뉴스맵 기사가 아직 없습니다. <a href="#s1" style="color:var(--blue)">부동산맵에서 ${esc(x.sgg)} 기사 보기 ›</a></div>`}</div>
+              : `<div class="note" style="padding:12px 0">아직 이 동네 기사가 없습니다. <a href="#s1" style="color:var(--blue)">${esc(x.sgg)} 기사 보기 ›</a></div>`}</div>
         </div>
 
         <aside><div style="position:sticky;top:60px">
           ${pt ? `<div class="mcard"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="mbadge">단지 전문 중개사 · ${esc(x.n)}</span><span class="ad">광고</span></div>
               <div class="row"><img class="face" src="${H.FACE[pt.name] || H.FACE['김OO']}" style="width:72px;height:72px" alt=""><div><b style="font-size:18px">${pt.name} 대표</b><div class="note">${pt.office}</div><div style="font-size:12.5px;margin-top:3px">거래 ${pt.deals}건 · ★ ${pt.rating}</div></div></div>
               <button class="btn navy" style="width:100%;margin-top:12px;height:42px" data-lead="partner">상담 신청</button>
-              <div class="legal">예시 정보 · 공인중개사법 제18조의2 표시 항목은 실제 계약 시 전문 페이지에 표기</div></div>`
+              <div class="legal">예시 중개사 · 등록번호·소재지는 전문 페이지에 표시</div></div>`
             : `<div class="mcard dj-empty"><div style="display:flex;justify-content:space-between;align-items:center"><b>단지 전문 중개사</b><span class="ad">광고 자리</span></div>
-              ${app ? `<div class="dj-app"><b>${esc(app.office)}</b> 신청 접수 · <span>${app.st}</span><div class="note">${app.at} · 한경부동산 플러스에서 심사</div></div>`
-                : `<p class="note" style="margin:8px 0 10px;line-height:1.55">이 단지 전문 중개사 자리가 비어 있습니다. 상담을 남기면 이 지역 집코노미 파트너스 중개사가 연락합니다.</p>`}
+              ${app ? `<div class="dj-app"><b>${esc(app.office)}</b> 신청 · <span>${app.st}</span><div class="note">${app.at} 접수</div></div>`
+                : `<p class="note" style="margin:8px 0 10px;line-height:1.55">상담을 남기면 ${esc(x.sgg)} 집코노미 파트너스 중개사가 연락드립니다.</p>`}
               <button class="btn navy" style="width:100%;height:42px" data-lead="pool">상담 신청</button>
-              ${app ? '' : `<button class="btn line" style="width:100%;margin-top:6px" data-apply="1">중개사이신가요? 이 단지 전문 중개사 신청</button>`}</div>`}
+              ${app ? '' : `<button class="btn line" style="width:100%;margin-top:6px" data-apply="1">이 단지 전문 중개사 신청 <span class="note">중개사용</span></button>`}</div>`}
           ${regE || regG ? `<div class="box" style="margin-top:16px"><div class="box-tit">동네 시세 <a href="#s1" class="more" data-region="${regE ? x.code : sggOf(x.code)}">지도에서 보기 ›</a></div>
             ${[regE, regG].filter(Boolean).map(rg => { const c1 = rg.m && at(rg.m, 1) ? (last(rg.m) / at(rg.m, 1) - 1) * 100 : null, c12r = rg.m && at(rg.m, 12) ? (last(rg.m) / at(rg.m, 12) - 1) * 100 : null; return `<div class="dj-reg"><b>${esc(rg.n)}</b><span class="num">평당 ${last(rg.m) ? last(rg.m).toLocaleString() + '만원' : '–'}</span><i class="${ud(c1)}">1개월 ${pctS(c1)}</i><i class="${ud(c12r)}">1년 ${pctS(c12r)}</i></div>`; }).join('')}</div>` : ''}
           <div class="box" style="margin-top:16px"><div class="box-tit">${esc(x.sgg)} 거래 많은 단지 <span class="more">최근 1년</span></div>
@@ -167,7 +180,7 @@ window.DJP = (function () {
     <div class="s3-sticky"><div class="wrap">
       <button class="btn line" id="djFav2">${fav ? '♥ 관심단지' : '♡ 관심단지'}</button>
       <button class="btn navy" style="flex:1;height:44px" data-lead="${pt ? 'partner' : 'pool'}">${pt ? `단지 전문 중개사 ${pt.name} 대표 상담받기 <span class="ad" style="border-color:#5a6b96;color:#c9d3ea">광고</span>` : '이 단지 상담 신청'}</button></div></div>
-    <div class="wrap" style="display:flex;justify-content:space-between;padding:10px 20px 16px"><span class="note">본 정보는 참고용이며 실제 거래 시 달라질 수 있습니다.</span><span class="note">데이터: 시세 · 국토교통부 실거래가</span></div>`;
+    <div class="wrap" style="display:flex;justify-content:space-between;padding:10px 20px 16px"><span class="note">실제 거래가격과 다를 수 있습니다.</span><span class="note">데이터: 시세 · 국토교통부 실거래가</span></div>`;
 
     el.querySelectorAll('.dj-types button').forEach(b => b.onclick = () => { curType = +b.dataset.ti; render(el); });
     el.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { location.hash = 'd/' + b.dataset.go; });
@@ -207,8 +220,8 @@ window.DJP = (function () {
       <div class="row2"><label>관심<select name="kind"><option>매수</option><option>매도</option><option>전세</option><option>월세</option></select></label>
       <label>면적<select name="area">${x.types.map((q, i) => `<option ${i === curType ? 'selected' : ''}>${q[0]}㎡ (${pyeongOf(q[0])}평)</option>`).join('') || '<option>상관없음</option>'}</select></label></div>
       <label>남길 말<textarea name="msg" rows="3" maxlength="300" placeholder="예) 저층 제외, 3개월 안 입주 가능한 매물 찾습니다"></textarea></label>
-      <label class="agree"><input type="checkbox" name="ok" required> 상담을 위해 이름·연락처를 중개사에게 제공하는 데 동의합니다(상담 종료 90일 뒤 파기).</label>
-      <div class="demo-note">시안: 입력한 내용은 이 브라우저에만 저장되고 실제로 전송되지 않습니다.</div>
+      <label class="agree"><input type="checkbox" name="ok" required> 이름·연락처를 중개사에게 전달하는 데 동의합니다. 상담이 끝나고 90일 뒤 지웁니다.</label>
+      <div class="demo-note">시안이라 실제로 보내지 않고 이 브라우저에만 남깁니다.</div>
       <div class="btns"><button type="button" class="btn line" id="fCancel">취소</button><button class="btn navy">신청하기</button></div></form>`);
     $('#fCancel').onclick = closeModal;
     $('#leadF').onsubmit = e => {
@@ -221,12 +234,12 @@ window.DJP = (function () {
     const {id, x} = cur, hh = x.hh || 0;
     const tierP = hh >= 5000 ? ['S', 200] : hh >= 2000 ? ['A', 120] : hh >= 1000 ? ['B', 70] : ['C', 40];
     modal(`<form class="hk-form" id="appF"><h3>${esc(x.n)} 전문 중개사 신청</h3>
-      <div class="note" style="margin:-4px 0 12px">${hh.toLocaleString()}세대 · 단지파트너 ${tierP[0]}등급 월 ${tierP[1]}만원(가설) · 단지당 1곳 · 한경부동산 플러스 회원 정보로 심사</div>
+      <div class="note" style="margin:-4px 0 12px">단지당 1곳 · ${hh.toLocaleString()}세대 ${tierP[0]}등급 월 ${tierP[1]}만원(가설)</div>
       <label>중개사무소 이름<input name="office" required maxlength="40" placeholder="○○공인중개사사무소"></label>
       <div class="row2"><label>대표 공인중개사<input name="ceo" required maxlength="20"></label><label>등록번호<input name="reg" required maxlength="30" placeholder="11710-2020-00000"></label></div>
       <label>사무소 연락처<input name="tel" required inputmode="tel" placeholder="02-000-0000"></label>
       <label>상품<select name="tier"><option value="premium">단지파트너(프리미엄) — 이 단지 단독 노출</option><option value="standard">집코노미 파트너스(스탠다드) — 전문 페이지만</option></select></label>
-      <div class="demo-note">시안: 이 브라우저에만 저장됩니다. 실제로는 한경부동산 플러스 로그인 후 신청합니다.</div>
+      <div class="demo-note">시안이라 이 브라우저에만 남깁니다. 실제 신청은 한경부동산 플러스에서 합니다.</div>
       <div class="btns"><button type="button" class="btn line" id="fCancel">취소</button><button class="btn navy">신청하기</button></div></form>`);
     $('#fCancel').onclick = closeModal;
     $('#appF').onsubmit = e => {
@@ -254,7 +267,7 @@ window.DJP = (function () {
     loadSearch();
     input.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(async () => {
       const res = await search(input.value);
-      list.innerHTML = res.map((r, i) => `<li data-i="${i}" class="${i === 0 ? 'on' : ''}"><b>${esc(r.n)}</b><small>${r.t === 'r' ? '지역 · ' : ''}${esc(r.sub)}</small></li>`).join('') || (input.value ? '<li class="none">찾는 단지가 없습니다 (수도권 아파트)</li>' : '');
+      list.innerHTML = res.map((r, i) => `<li data-i="${i}" class="${i === 0 ? 'on' : ''}"><b>${esc(r.n)}</b><small>${r.t === 'r' ? '지역 · ' : ''}${esc(r.sub)}</small></li>`).join('') || (input.value ? '<li class="none">찾는 단지가 없습니다. 수도권 아파트만 찾을 수 있습니다.</li>' : '');
       list.hidden = !list.innerHTML;
       list._res = res;
       list.querySelectorAll('li[data-i]').forEach(li => li.onmousedown = e => { e.preventDefault(); pick(res[+li.dataset.i]); });

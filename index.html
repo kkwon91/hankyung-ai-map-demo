@@ -24,7 +24,6 @@
 <script src="store.js"></script>
 <script src="djchart.js"></script>
 <script src="danji.js"></script>
-<link rel="stylesheet" href="map1.css">
 <style>
 /* ── 한국경제 디자인 토큰 (hankyung.com common.ui.all.css / realestate.css 실측) ── */
 :root{
@@ -353,6 +352,7 @@ body.noanno .s1-mapwrap{outline:0}
   .gnb{gap:14px;font-size:13px;flex-wrap:wrap}
 }
 </style>
+<link rel="stylesheet" href="map1.css">
 </head>
 <body>
 
@@ -374,7 +374,7 @@ body.noanno .s1-mapwrap{outline:0}
 </div>
 
 <section class="screen" id="v-s1">
-  <div class="cap"><h2>① 집코노미 메인 — 동네뉴스맵을 '부동산맵'으로 키움</h2><p>지금 첫 화면 지도 자리(900×441)만 바꿉니다. 기사는 실제 동네뉴스맵 기사, 시세·실거래·신고가·매물은 실측 자료(11월 기준)</p></div>
+  <div class="cap"><h2>① 집코노미 메인 — 동네뉴스맵을 '부동산맵'으로 키움</h2><p>지금 첫 화면 지도 자리(900×441)만 바꿉니다. 기사는 실제 동네뉴스맵 기사, 시세·실거래·신고가·매물은 11월 실측 자료입니다</p></div>
   <div class="frame" id="s1frame"></div>
   <div class="annos">
     <div><b>1</b>GNB에 'AI 단지지도' 신설(기존 메뉴 순서·스타일 유지)</div>
@@ -398,7 +398,7 @@ body.noanno .s1-mapwrap{outline:0}
 </section>
 
 <section class="screen" id="v-s3">
-  <div class="cap"><h2>③ 단지 페이지 — 수도권 아파트 1만 2,700여 곳</h2><p>지도·검색에서 아무 단지나 눌러 보세요. 평형별 2년 시세·1년 실거래·2017년 이후 최고가·동네 비교·한경 기사가 실측 자료로 열립니다</p></div>
+  <div class="cap"><h2>③ 단지 페이지 — 수도권 아파트 1만 2,700여 곳</h2><p>지도나 검색에서 아무 단지나 눌러 보세요. 모든 단지가 실제 시세·실거래로 열립니다</p></div>
   <div class="frame" id="s3frame"></div>
   <div class="annos">
     <div><b>1</b>한경 기사 제목 영역 문법: 경로·큰 제목·메타·공유</div>
@@ -604,9 +604,9 @@ function renderS1() {
       </div>
     </div>
 
-    <div class="s1-search"><b style="font-size:15px;white-space:nowrap">우리 단지 시세·실거래 찾기</b><div class="in hk-in"><input id="s1Q" type="search" placeholder="단지명·동네 검색 (예: 헬리오시티, 은마, 잠실동)" autocomplete="off"><span>⌕</span><ul class="hk-ac" id="s1QL" hidden></ul></div><span class="note" style="white-space:nowrap">수도권 아파트 1만 2천여 곳</span></div>
+    <div class="s1-search"><b style="font-size:15px;white-space:nowrap">우리 단지 시세 찾기</b><div class="in hk-in"><input id="s1Q" type="search" placeholder="단지명·동네 검색 (예: 헬리오시티, 은마, 잠실동)" autocomplete="off"><span>⌕</span><ul class="hk-ac" id="s1QL" hidden></ul></div><span class="note" style="white-space:nowrap">수도권 아파트 1만 2천여 곳</span></div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px;position:relative">
+    <div class="s1-2col" style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px;position:relative">
       <i class="an" data-n="5" style="left:-12px;top:-10px"></i>
       <div>
         <div class="sec-tit">AI 단지 리포트 <span class="pill">전체보기 ›</span><span class="sub">시세·실거래 자료로 매일 갱신</span></div>
@@ -630,7 +630,7 @@ function renderS1() {
     </div>
 
     <hr class="divider">
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:34px;padding-bottom:40px">
+    <div class="s1-3col" style="display:grid;grid-template-columns:repeat(3,1fr);gap:34px;padding-bottom:40px">
       ${[['시장동향', [sec[2], N.pick[1], N.pick[2]]], ['부동산 정책', [sec[1], sec[3], sec[4]]], ['분양·경매', [sec[5], sec[6], sec[7]]]].map(([t, arr]) =>
         `<div><div class="sec-tit">${t} <span class="chev">›</span></div>${arr.map(a => newsItem(a, 'sm')).join('')}</div>`).join('')}
     </div>
