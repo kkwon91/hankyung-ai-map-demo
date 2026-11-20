@@ -78,9 +78,8 @@ window.PMAP = (function () {
 
   function mount(container) {
     el = container; el.innerHTML = html();
-    map = L.map('pmMap', {zoomControl: false, scrollWheelZoom: false, zoomSnap: .5, minZoom: 9, maxZoom: 17, attributionControl: true, preferCanvas: false});
-    L.tileLayer(window.HK_TILE_URL, {maxZoom: 19, className: 'pm-tiles', attribution: '© OpenStreetMap'}).addTo(map);
-    map.attributionControl.setPrefix(false);
+    map = L.map('pmMap', {zoomControl: false, scrollWheelZoom: false, zoomSnap: 1, zoomAnimation: false, minZoom: 9, maxZoom: 17, attributionControl: true, preferCanvas: false});
+    window.addBase(map, {gray: true, className: 'pm-tiles'});
     map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [300, 40], paddingBottomRight: [10, 10]});
     gSgg = L.geoJSON({type: 'FeatureCollection', features: M.geo.sgg}, {style: f => style(R[f.properties.code]), onEachFeature: bindPoly});
     gEmd = L.geoJSON({type: 'FeatureCollection', features: M.geo.emd}, {style: f => style(R[f.properties.code]), onEachFeature: bindPoly});

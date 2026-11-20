@@ -18,7 +18,7 @@
 <script src="score.js"></script>
 <script src="data.js"></script>
 <script src="news.js"></script>
-<script>/* 파일로 열면(file:) 출처 정보가 없어 OSM 본 서버가 타일을 막음 → 출처 없이 받는 OSM 독일 서버 */window.HK_TILE_URL = location.protocol === 'file:' ? 'https://tile.openstreetmap.de/{z}/{x}/{y}.png' : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';</script>
+<script src="basemap.js"></script>
 <script src="map.js"></script>
 <script src="map1.js"></script>
 <link rel="stylesheet" href="map1.css">
@@ -573,9 +573,9 @@ function pinHtml(d, mode, sel, scv = d.score) {
   return `<div class="pin ${sel ? 'sel' : ''}">${m ? face(m.name, 22, '').replace('class="face"', 'class="face mav"') : ''}${body}</div>`;
 }
 function makeMap(el, zoomPos = 'bottomright') {
-  const map = L.map(el, {zoomControl: false, scrollWheelZoom: false, zoomSnap: .25}).setView([37.505, 127.1], 13);
+  const map = L.map(el, {zoomControl: false, scrollWheelZoom: false, zoomSnap: 1, zoomAnimation: false}).setView([37.505, 127.1], 13);
   L.control.zoom({position: zoomPos}).addTo(map);
-  L.tileLayer(window.HK_TILE_URL, {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
+  addBase(map);
   return map;
 }
 
