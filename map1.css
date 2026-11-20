@@ -152,7 +152,7 @@
 .pm-vol{margin-top:10px}
 .pm-vol .h{display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:2px}
 .pm-vol small{font-weight:400;color:#999;font-size:10.5px}
-.pm .hk-naver.gray{filter:grayscale(.8) brightness(1.04) contrast(.92)}
+.pm .hk-naver.gray{filter:none}
 .pm-zoom{bottom:44px}
 /* ── 검색 자동완성 ── */
 .pm-search{position:relative;padding:8px 14px;border-bottom:1px solid #eee}

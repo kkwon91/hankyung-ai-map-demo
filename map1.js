@@ -128,7 +128,7 @@ window.PMAP = (function () {
     return divColor(v, metric);
   }
   function style(r) {
-    const z = map ? map.getZoom() : 10, dim = z >= 14 ? .18 : layer === 'news' ? .42 : layer === 'high' ? .58 : .64;
+    const z = map ? map.getZoom() : 10, dim = z >= 14 ? .08 : layer === 'news' ? .28 : layer === 'high' ? .55 : .6;
     const sel = view.k === 'region' && view.code === r.code;
     return {color: sel ? '#121212' : '#fff', weight: sel ? 2.4 : r.lv === 'sgg' ? 1.2 : .7, fillColor: fill(r), fillOpacity: dim, opacity: 1};
   }
