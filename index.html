@@ -18,6 +18,10 @@
 <script src="score.js"></script>
 <script src="data.js"></script>
 <script src="news.js"></script>
+<script>/* 파일로 열면(file:) 출처 정보가 없어 OSM 본 서버가 타일을 막음 → 출처 없이 받는 OSM 독일 서버 */window.HK_TILE_URL = location.protocol === 'file:' ? 'https://tile.openstreetmap.de/{z}/{x}/{y}.png' : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';</script>
+<script src="map.js"></script>
+<script src="map1.js"></script>
+<link rel="stylesheet" href="map1.css">
 <style>
 /* ── 한국경제 디자인 토큰 (hankyung.com common.ui.all.css / realestate.css 실측) ── */
 :root{
@@ -130,8 +134,10 @@ body.noanno .an, body.noanno .annos{display:none}
 .newsc b{font-size:17px;font-family:Tahoma,sans-serif}
 
 /* ── S1 ── */
-.s1-hero{display:grid;grid-template-columns:1fr 300px;margin-top:0}
-.s1-mapwrap{position:relative;height:500px;border:2px solid #ff2d2d;border-right-width:2px}
+.s1-hero{display:grid;grid-template-columns:minmax(0,900px) 300px;margin:0 -20px;height:441px}
+@media (max-width:1260px){.s1-hero{margin:0}}
+.s1-mapwrap{position:relative;height:441px;outline:2px solid #ff2d2d;outline-offset:-2px}
+body.noanno .s1-mapwrap{outline:0}
 .s1-map{position:absolute;inset:0}
 .s1-panel{position:absolute;left:14px;top:14px;bottom:14px;width:290px;z-index:800;background:#fff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.16);display:flex;flex-direction:column;overflow:hidden}
 .s1-panel .ph-head{display:flex;align-items:center;justify-content:space-between;padding:14px 14px 8px}
@@ -150,7 +156,7 @@ body.noanno .an, body.noanno .annos{display:none}
 .s1-layer button{border:0;background:transparent;border-radius:999px;padding:6px 13px;font-weight:500;color:var(--text2);font-size:13px}
 .s1-layer button.on{background:#121212;color:#fff;font-weight:700}
 .s1-mini{position:absolute;right:12px;bottom:12px;z-index:800;width:280px;background:#fff;box-shadow:0 6px 20px rgba(0,0,0,.2);display:none;border-radius:2px;overflow:hidden}
-.s1-side{border:1px solid var(--line);border-left:0}
+.s1-side{border:1px solid var(--line);border-left:0;overflow:hidden;height:441px}
 .s1-tv{position:relative;height:190px;overflow:hidden;background:#000}
 .s1-tv .yt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:58px;height:40px;border-radius:10px;background:#f00;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px}
 .s1-tv .cap2{position:absolute;left:0;right:0;top:0;padding:10px 12px;background:linear-gradient(180deg,rgba(0,0,0,.75),transparent);color:#fff;font-weight:700;font-size:14px}
@@ -365,13 +371,13 @@ body.noanno .an, body.noanno .annos{display:none}
 </div>
 
 <section class="screen" id="v-s1">
-  <div class="cap"><h2>① 집코노미 메인 — 동네뉴스맵에 '시세·AI 스코어' 레이어 추가</h2><p>hankyung.com/realestate 첫 화면 구조·디자인 그대로. 기사·사진은 오늘 실제 집코노미 게재분</p></div>
+  <div class="cap"><h2>① 집코노미 메인 — 동네뉴스맵을 '부동산맵'으로 키움</h2><p>지금 첫 화면 지도 자리(900×441)만 바꿉니다. 기사는 실제 동네뉴스맵 기사, 시세·실거래·신고가·매물은 실측 자료(11월 기준)</p></div>
   <div class="frame" id="s1frame"></div>
   <div class="annos">
     <div><b>1</b>GNB에 'AI 단지지도' 신설(기존 메뉴 순서·스타일 유지)</div>
-    <div><b>2</b>'현위치에서 재검색' 옆에 레이어 전환: 뉴스(기존) / 시세 / AI 스코어</div>
-    <div><b>3</b>동네뉴스맵 패널에 탭 추가: 동네뉴스(기존) / 단지 시세 / 중개업소(전문 페이지로 연결)</div>
-    <div><b>4</b>마커 클릭 → 단지 미니카드(사진·KB 시세·단지파트너) → 단지 AI 페이지</div>
+    <div><b>2</b>지도 보기 4가지: 뉴스(기존 묶음 + 바탕에 시세 변동) / 시세 / 실거래 / 신고가 — 수도권 시·군·구 → 서울 동 → 단지로 확대</div>
+    <div><b>3</b>왼쪽 패널은 지도 화면을 따라 바뀜: 지역을 누르면 시세·실거래·매물·데이터 브리핑 + 그 지역 한경 기사, 단지를 누르면 실거래표·관련 기사·단지 전문 중개사(광고 표시)</div>
+    <div><b>4</b>범례·기준일을 지도 안에 항상 표시. 확대(14 이상)하면 단지별 최근 실거래가 핀, 신고가는 빨강, 전문 중개사 있는 단지는 남색 점</div>
     <div><b>5</b>'집 100세 시대' 같은 연재 슬롯에 'AI 단지 리포트'·'동네 시장 리포트' 섹션 편성</div>
   </div>
 </section>
@@ -389,7 +395,7 @@ body.noanno .an, body.noanno .annos{display:none}
 </section>
 
 <section class="screen" id="v-s3">
-  <div class="cap"><h2>③ 단지 AI 페이지 — 헬리오시티</h2><p>한경 기사 페이지 문법(제목·사진·캡션·본문 폭)으로 구성. 숫자는 리치고 실데이터, 하단 뉴스는 실제 한경 기사</p></div>
+  <div class="cap"><h2>③ 단지 AI 페이지 — 헬리오시티</h2><p>한경 기사 페이지 문법(제목·사진·캡션·본문 폭)으로 구성. 숫자는 실측 데이터, 하단 뉴스는 실제 한경 기사</p></div>
   <div class="frame" id="s3frame"></div>
   <div class="annos">
     <div><b>1</b>한경 기사 제목 영역 문법: 경로·큰 제목·메타·공유</div>
@@ -455,7 +461,7 @@ body.noanno .an, body.noanno .annos{display:none}
   <div class="frame" id="s8frame"></div>
   <div class="annos">
     <div><b>1</b>모든 파트너에 전문 페이지 기본 제공. 프리미엄(단지파트너)은 배지가 더 붙음 → 업셀링</div>
-    <div><b>2</b>전문 단지 — 리치고 단지 리포트와 연결</div>
+    <div><b>2</b>전문 단지 — 단지 리포트와 연결</div>
     <div><b>3</b>고유 현장정보: 이 업소의 현장 제보·한경 기사 인용 — 다른 플랫폼에 없는 콘텐츠</div>
     <div><b>4</b>매물: 한경부동산 플러스 등록 매물 자동 연동(재등록 없음), 확인매물 표시</div>
     <div><b>5</b>상담 신청·개인정보 동의·공인중개사법 표시·프로필 사진 이용 허락</div>
@@ -475,7 +481,7 @@ body.noanno .an, body.noanno .annos{display:none}
 </section>
 
 <section class="screen" id="v-s10">
-  <div class="cap"><h2>⑩ H-AI 스코어 v1 — 산식과 송파구 전체 순위</h2><p>송파구 아파트·재건축 163개 단지를 리치고 실측 데이터로 실제 계산. 관점·유형을 바꾸고 열 제목을 눌러 정렬해 보세요</p></div>
+  <div class="cap"><h2>⑩ H-AI 스코어 v1 — 산식과 송파구 전체 순위</h2><p>송파구 아파트·재건축 163개 단지를 실측 데이터로 실제 계산. 관점·유형을 바꾸고 열 제목을 눌러 정렬해 보세요</p></div>
   <div class="frame" id="s10frame"></div>
   <div class="annos">
     <div><b>1</b>비교 대상·데이터 기준일·원칙(예측값 없음, 광고 영향 없음) 고지</div>
@@ -569,7 +575,7 @@ function pinHtml(d, mode, sel, scv = d.score) {
 function makeMap(el, zoomPos = 'bottomright') {
   const map = L.map(el, {zoomControl: false, scrollWheelZoom: false, zoomSnap: .25}).setView([37.505, 127.1], 13);
   L.control.zoom({position: zoomPos}).addTo(map);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
+  L.tileLayer(window.HK_TILE_URL, {maxZoom: 19, attribution: '© OpenStreetMap'}).addTo(map);
   return map;
 }
 
@@ -583,17 +589,10 @@ function renderS1() {
   <div class="wrap">
     <div class="s1-hero" style="margin-top:0">
       <div class="s1-mapwrap">
-        <div class="s1-map" id="map1"></div>
-        <div class="s1-panel">
-          <div class="ph-head"><b>동네뉴스맵 ›</b><span class="sel">전체 <span>⌄</span></span></div>
-          <div class="s1-tabs"><button data-t="news" class="on">동네뉴스</button><button data-t="price">단지 시세</button><button data-t="master">중개업소</button></div>
-          <div class="s1-list" id="s1list"></div>
-        </div>
-        <div class="s1-top"><span class="s1-research">⟳ 현위치에서 재검색</span><div class="s1-layer"><button data-l="news">뉴스</button><button data-l="price" class="on">시세</button><button data-l="score">AI 스코어</button></div></div>
-        <div class="s1-mini" id="s1mini"></div>
-        <i class="an" data-n="2" style="left:calc(50% + 150px);top:6px"></i>
-        <i class="an" data-n="3" style="left:250px;top:58px"></i>
-        <i class="an" data-n="4" style="right:12px;top:60px"></i>
+        <div id="pmRoot" style="position:absolute;inset:0"></div>
+        <i class="an" data-n="2" style="left:318px;top:4px"></i>
+        <i class="an" data-n="3" style="left:4px;top:4px"></i>
+        <i class="an" data-n="4" style="left:318px;bottom:30px"></i>
       </div>
       <div class="s1-side">
         <div class="s1-tv"><img class="ph" src="${N.tv[0].img}" alt=""><div class="cap2">집코노미 TV</div><div class="yt">▶</div></div>
@@ -607,7 +606,7 @@ function renderS1() {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:36px;position:relative">
       <i class="an" data-n="5" style="left:-12px;top:-10px"></i>
       <div>
-        <div class="sec-tit">AI 단지 리포트 <span class="pill">전체보기 ›</span><span class="sub">리치고 데이터로 매일 갱신</span></div>
+        <div class="sec-tit">AI 단지 리포트 <span class="pill">전체보기 ›</span><span class="sub">시세·실거래 자료로 매일 갱신</span></div>
         <a class="lead-item" href="#s3" style="grid-template-columns:240px 1fr"><div style="height:150px;overflow:hidden"><img class="ph" src="${helio.photo}" alt=""></div>
           <div><div class="ntag"><span class="b ai">AI 단지분석</span><span class="c bl">송파구 가락동</span></div>
           <div class="t" style="font-size:21px">헬리오시티 1년 보합 속 전세가율 ${helio.jr}%…3개월 실거래 ${helio.trades3m}건</div>
@@ -633,47 +632,11 @@ function renderS1() {
         `<div><div class="sec-tit">${t} <span class="chev">›</span></div>${arr.map(a => newsItem(a, 'sm')).join('')}</div>`).join('')}
     </div>
   </div>`;
-  document.querySelectorAll('.s1-layer button').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.s1-layer button').forEach(x => x.classList.toggle('on', x === b)); s1layer = b.dataset.l; drawS1();
-  });
-  document.querySelectorAll('.s1-tabs button').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.s1-tabs button').forEach(x => x.classList.toggle('on', x === b)); s1tab = b.dataset.t; listS1();
-  });
-  listS1();
 }
+let s1mounted = false;
 function initS1() {
-  if (map1) { map1.invalidateSize(); return; }
-  map1 = makeMap('map1');
-  map1.fitBounds(DANJI.map(d => [d.lat, d.lng]), {paddingTopLeft: [330, 80], paddingBottomRight: [30, 30]});
-  drawS1();
-}
-function drawS1() {
-  s1markers.forEach(m => m.remove()); s1markers = [];
-  if (s1layer === 'news') NEWS_AREAS.forEach(([la, ln, n]) => s1markers.push(L.marker([la, ln], {icon: L.divIcon({className: '', html: `<div class="newsc"><small>NEWS</small><b>${n}</b></div>`})}).addTo(map1)));
-  DANJI.forEach(d => {
-    const mk = L.marker([d.lat, d.lng], {icon: L.divIcon({className: '', html: pinHtml(d, s1layer)})}).addTo(map1);
-    mk.on('click', () => showMini(d)); s1markers.push(mk);
-  });
-}
-function showMini(d) {
-  const m = masterOf(d), el = $('#s1mini');
-  el.style.display = 'block';
-  el.innerHTML = `<div style="height:110px;overflow:hidden;position:relative"><img class="ph" src="${d.photo}" alt=""><span class="sc ${scoreClass(d.score)}" style="position:absolute;left:0;top:0;height:24px;font-size:13px">${d.score ?? '–'}</span></div>
-   <div style="padding:12px 14px"><b style="font-size:16px">${d.name}</b><div class="note">${d.dong} · ${d.hh.toLocaleString()}세대 · ${d.built}</div>
-   <div style="display:flex;gap:18px;margin:10px 0"><div><div class="note">KB 매매 ${d.py}평</div><b style="font-size:18px" class="num">${won(d.kbM)}</b></div><div><div class="note">1년</div><b style="font-size:18px" class="num ${cls(d.chg1y)}">${arrow(d.chg1y)} ${d.chg1y != null ? Math.abs(d.chg1y).toFixed(1) + '%' : '-'}</b></div></div>
-   ${m ? `<div style="display:flex;gap:8px;align-items:center;border-top:1px solid var(--line3);padding-top:8px;font-size:12.5px">${face(m.name, 30)}<div><span class="mbadge">단지파트너</span> ${m.name} 대표 <span class="ad">광고</span><div class="note">${m.office}</div></div></div>` : ''}
-   <a href="#s3" class="btn black" style="width:100%;margin-top:10px;padding:9px">단지 AI 페이지 →</a></div>`;
-}
-function listS1() {
-  const el = $('#s1list');
-  if (s1tab === 'news') {
-    el.innerHTML = [...N.pick, ...N.helio.slice(0, 2), ...N.garak.slice(0, 2)].map(a => `<a class="s1-row" href="${a.url}" target="_blank"><div class="th"><img class="ph" src="${a.img}" alt=""></div><div class="t">${a.title}</div></a>`).join('');
-  } else if (s1tab === 'master') {
-    el.innerHTML = `<div class="note" style="padding:8px 0 2px">이 지역 집코노미 파트너스 · 전문 페이지</div>` + PARTNERS.map(p => `<a class="s1-row" href="#s8">${face(p.key, 44)}<div style="flex:1"><div style="font-weight:700;font-size:14px">${p.office}</div><div style="margin:2px 0">${tierBadge(p.tier)}</div><div class="note">${p.danji[0]} · 거래 ${p.deals}건 · ★${p.rating}</div></div></a>`).join('');
-  } else {
-    el.innerHTML = [...DANJI].sort((a, b) => (b.score ?? 0) - (a.score ?? 0)).map(d => `<div class="s1-row" data-id="${d.id}"><div class="th" style="width:56px;height:42px;position:relative"><img class="ph" src="${d.photo}" alt=""></div><div style="flex:1;min-width:0"><div style="font-weight:700;font-size:14px">${d.name}</div><div class="note">${d.dong} · <span class="sc ${scoreClass(d.score)}" style="height:16px;font-size:10.5px">${d.score ?? '–'}</span></div></div><div style="text-align:right"><b class="num">${won(d.kbM)}</b><div class="note num ${cls(d.chg1y)}">${d.chg1y != null ? arrow(d.chg1y) + ' ' + Math.abs(d.chg1y).toFixed(1) + '%' : ''}</div></div></div>`).join('');
-    el.querySelectorAll('.s1-row').forEach(r => r.onclick = () => { const d = byId(r.dataset.id); map1.panTo([d.lat, d.lng]); showMini(d); });
-  }
+  if (s1mounted) { PMAP.map.invalidateSize(); return; }
+  s1mounted = true; PMAP.mount(document.getElementById('pmRoot'));
 }
 
 /* ═════ S2 AI 단지지도 ═════ */
@@ -719,9 +682,9 @@ function panelS2() {
     <div class="aisum"><div class="h">AI 한줄 요약</div>${aiSummary(d)}</div>
     <div class="kv" style="margin-top:14px"><div><div class="l">KB 매매 (${d.py}평)</div><div class="v num">${won(d.kbM)}</div></div><div><div class="l">KB 전세</div><div class="v num">${won(d.kbJ)}</div></div>
       <div><div class="l">전세가율</div><div class="v num">${d.jr ?? '-'}${d.jr ? '%' : ''}</div></div><div><div class="l">최근 3개월 실거래</div><div class="v num">${d.trades3m ?? '-'}${d.trades3m != null ? '건' : ''}</div></div></div>
-    ${d.ms ? `<div style="border:1px solid var(--line);padding:10px 12px;margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:13px"><b>시세 흐름 (2년)</b><b class="num ${cls(d.chg2y)}">${arrow(d.chg2y)} ${Math.abs(d.chg2y).toFixed(1)}%</b></div>${spark(d.ms, '#0d79c7', 300, 54)}<div class="src" style="margin-top:2px">리치고 시세 · 2024.10~2026.10</div></div>` : ''}
+    ${d.ms ? `<div style="border:1px solid var(--line);padding:10px 12px;margin-top:12px"><div style="display:flex;justify-content:space-between;font-size:13px"><b>시세 흐름 (2년)</b><b class="num ${cls(d.chg2y)}">${arrow(d.chg2y)} ${Math.abs(d.chg2y).toFixed(1)}%</b></div>${spark(d.ms, '#0d79c7', 300, 54)}<div class="src" style="margin-top:2px">시세 · 2024.10~2026.10</div></div>` : ''}
     <a href="#s3" class="btn black" style="width:100%;margin-top:14px">단지 AI 페이지 자세히 보기</a>
-    <div class="src">출처: KB부동산 시세(2026.10.01) · 국토교통부 실거래 · 리치고</div></div>`;
+    <div class="src">출처: KB부동산 시세(2026.10.01) · 국토교통부 실거래</div></div>`;
   let mh;
   if (m) mh = `<div class="mcard"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><span class="mbadge">단지파트너</span><span class="ad">광고</span></div>
       <div class="row">${face(m.name, 64)}<div><b style="font-size:17px">${m.name} 대표</b><div class="note">${m.office}</div><div style="font-size:12.5px;margin-top:2px">${d.name} 전담 · 거래 ${m.deals}건 · ★ ${m.rating}</div></div></div>
@@ -759,14 +722,14 @@ function renderS3() {
         <div class="ticker" style="position:relative"><i class="an" data-n="3" style="right:-12px;top:-12px"></i>
           <div><div class="l">KB 매매 33평</div><div class="v">${won(d.kbM)}</div><div class="s note">2026.10.01</div></div>
           <div><div class="l">KB 전세 33평</div><div class="v">${won(d.kbJ)}</div><div class="s note">전세가율 ${d.jr}%</div></div>
-          <div><div class="l">1년 변동</div><div class="v ${cls(d.chg1y)}">${arrow(d.chg1y)} ${Math.abs(d.chg1y).toFixed(1)}%</div><div class="s note">리치고 시세</div></div>
+          <div><div class="l">1년 변동</div><div class="v ${cls(d.chg1y)}">${arrow(d.chg1y)} ${Math.abs(d.chg1y).toFixed(1)}%</div><div class="s note">시세 흐름</div></div>
           <div><div class="l">2년 변동</div><div class="v ${cls(d.chg2y)}">${arrow(d.chg2y)} ${Math.abs(d.chg2y).toFixed(1)}%</div><div class="s note">2024.10 대비</div></div>
           <div><div class="l">실거래 3개월</div><div class="v">${d.trades3m}건</div><div class="s note">국토부 신고</div></div>
         </div>
-        <div class="aisum" style="margin-top:22px;position:relative"><i class="an" data-n="4" style="right:-12px;top:-12px"></i><div class="h">AI 한줄 요약</div>8호선 송파역과 지하로 이어지고 단지 안에 초등학교 2곳·중학교 1곳이 있어 <b>통학·출퇴근이 편한 대단지</b>예요. 지상에 차가 없는 평지에 산책로가 있어 생활 만족도가 높아요. 다만 <b>층간소음과 어린이집 대기</b>는 입주민이 자주 꼽는 아쉬운 점이에요. 위례신사선 '탄천(헬리오시티)역'이 유력해 교통이 더 좋아질 가능성이 있어요.<div class="src">근거: 리치고 단지위키 사실 80여 건(교통·교육·소음·주변 개발 등), 2026.06 기준</div></div>
+        <div class="aisum" style="margin-top:22px;position:relative"><i class="an" data-n="4" style="right:-12px;top:-12px"></i><div class="h">AI 한줄 요약</div>8호선 송파역과 지하로 이어지고 단지 안에 초등학교 2곳·중학교 1곳이 있어 <b>통학·출퇴근이 편한 대단지</b>예요. 지상에 차가 없는 평지에 산책로가 있어 생활 만족도가 높아요. 다만 <b>층간소음과 어린이집 대기</b>는 입주민이 자주 꼽는 아쉬운 점이에요. 위례신사선 '탄천(헬리오시티)역'이 유력해 교통이 더 좋아질 가능성이 있어요.<div class="src">근거: 단지 사실 자료 80여 건(교통·교육·소음·주변 개발 등), 2026.06 기준</div></div>
 
         <div class="s3-sec"><div class="sec-tit">시세 추이 <span class="chev">›</span><span class="sub">33평 · <b style="color:var(--blue)">매매</b> / <b style="color:#888">전세</b></span></div>
-          ${lineChart([{data: d.ms, color: '#0d79c7'}, {data: d.js, color: '#999'}], MONTHS)}<div class="src">리치고 시세(월별) · KB 시세는 위 시세판 표기</div></div>
+          ${lineChart([{data: d.ms, color: '#0d79c7'}, {data: d.js, color: '#999'}], MONTHS)}<div class="src">시세(월별) · KB 시세는 위 시세판 표기</div></div>
 
         <div class="s3-sec" style="display:grid;grid-template-columns:1.5fr 1fr;gap:26px;position:relative"><i class="an" data-n="5" style="left:-12px;top:-10px"></i>
           <div><div class="sec-tit">최근 실거래 <span class="chev">›</span><span class="sub">2026.07~10 · ${HELIO_TRADES.length}건</span></div>
@@ -780,7 +743,7 @@ function renderS3() {
 
         <div class="s3-sec"><div class="sec-tit">입지·생활 <span class="chev">›</span><span class="sub">입주민·공공자료·기사에서 확인된 사실</span></div>
           <div class="wiki">${HELIO_WIKI.map(w => `<div class="w"><b>${w.k}</b><span class="st ${w.st}">${w.st === 'warn' ? '주의' : w.st === 'up' ? '좋아지는 중' : '좋음'}</span><div style="margin-top:3px;color:#333">${w.t}</div></div>`).join('')}</div>
-          <div class="src">리치고 단지위키 18개 항목 중 발췌</div></div>
+          <div class="src">단지 사실 자료 18개 항목 중 발췌</div></div>
 
         <div class="s3-sec"><div class="sec-tit">주변 단지 비교 <span class="chev">›</span></div>
           <table class="tbl"><tr><th>단지</th><th>스코어</th><th class="r">KB 매매</th><th class="r">1년</th><th class="r">2년</th><th class="r">전세가율</th></tr>${cmp}</table></div>
@@ -820,7 +783,7 @@ function renderS3() {
     <button class="btn line">♡ 관심단지</button>
     <button class="btn black" style="flex:1;height:44px">AI에게 질문하기</button>
     <button class="btn navy" style="flex:1;height:44px">${face(m.name, 26, 'border:1px solid #fff')} 단지파트너 ${m.name} 대표 상담받기 <span class="ad" style="border-color:#5a6b96;color:#c9d3ea">광고</span></button></div></div>
-  <div class="wrap" style="display:flex;justify-content:space-between;padding:10px 20px 16px" ><span class="note">본 정보는 참고용이며 실제 거래 시 달라질 수 있습니다.</span><span class="note">데이터: KB부동산 · 국토교통부 실거래가 · 리치고</span></div>`;
+  <div class="wrap" style="display:flex;justify-content:space-between;padding:10px 20px 16px" ><span class="note">본 정보는 참고용이며 실제 거래 시 달라질 수 있습니다.</span><span class="note">데이터: KB부동산 · 국토교통부 실거래가</span></div>`;
 }
 
 /* ═════ S4 모바일 ═════ */
@@ -849,9 +812,9 @@ function renderS4() {
     <div class="chat" id="chat"><div class="bub ai">안녕하세요! 헬리오시티에 대해 궁금한 걸 물어보세요. 시세·실거래·학교·생활 정보를 근거와 함께 알려드려요.</div></div>
     <div class="qchips" id="qchips"></div></div></div>`;
   const QA = [
-    ['33평 전세 얼마예요?', `33평 KB 전세 시세는 <b>${won(d.kbJ)}</b>예요(10/1 기준). 매매 ${won(d.kbM)} 대비 전세가율 <b>${d.jr}%</b>로, 2년 전(약 10.7억)보다 올랐어요.<div class="src">KB부동산 · 리치고 시세</div>`],
+    ['33평 전세 얼마예요?', `33평 KB 전세 시세는 <b>${won(d.kbJ)}</b>예요(10/1 기준). 매매 ${won(d.kbM)} 대비 전세가율 <b>${d.jr}%</b>로, 2년 전(약 10.7억)보다 올랐어요.<div class="src">KB부동산 시세</div>`],
     ['최근에 얼마에 팔렸어요?', `최근 3개월 실거래는 <b>${d.trades3m}건</b>이에요.<br>· 9/22 32평 9층 <b>30억 5,500</b><br>· 8/15 33평 35층 <b>29억</b><br>· 8/07 33평 15층 <b>31억</b><div class="src">국토부 실거래 · 취소 제외</div>`],
-    ['해누리중 배정돼요?', '1·3단지는 해누리중 배정 구역이에요. 해누리초·중 증축으로 입주민 자녀 전원 배정이 합의됐어요. 정확한 동별 배정은 교육청 공고로 확인하세요.<div class="src">리치고 단지위키 · 교육 항목</div>'],
+    ['해누리중 배정돼요?', '1·3단지는 해누리중 배정 구역이에요. 해누리초·중 증축으로 입주민 자녀 전원 배정이 합의됐어요. 정확한 동별 배정은 교육청 공고로 확인하세요.<div class="src">단지 사실 자료 · 교육 항목</div>'],
     ['지금 사도 될까요?', `구매 판단은 제가 대신 내려드릴 수 없어요. 참고할 숫자는 이래요.<br>· 1년 변동 <b>${pct(d.chg1y)}</b> · 2년 <b>${pct(d.chg2y)}</b><br>· 전세가율 <b>${d.jr}%</b><br>· 매물 ${d.listing.n}건, 호가 평균 ${won(d.listing.avg)}<br>동·층·자금 계획에 맞춘 판단은 단지 전담 중개사와 상담해 보세요.`, true]
   ];
   $('#qchips').innerHTML = QA.map((q, i) => `<button data-i="${i}">${q[0]}</button>`).join('');
@@ -908,7 +871,7 @@ function renderS5() {
           <div class="nitem" style="padding-bottom:0"><div style="flex:1"><div class="t" style="font-size:14px">추석 지나자 가락동 '국평' 문의 늘었다…헬리오시티 30억대 거래 이어져</div><div class="note">10.14 · 조회 1만2,400 · 상담 신청 6</div>
             <div style="display:flex;gap:4px;margin-top:6px"><button class="btn line" style="padding:4px 8px;font-size:11.5px">카톡 공유</button><button class="btn line" style="padding:4px 8px;font-size:11.5px">블로그</button><button class="btn line" style="padding:4px 8px;font-size:11.5px">명함 QR</button></div></div></div></div>
       </div>
-      <div class="box" style="background:#fff;margin-top:14px"><div class="box-tit">원클릭 홍보물 만들기 <span class="more">리치고 데이터 자동 채움</span></div>
+      <div class="box" style="background:#fff;margin-top:14px"><div class="box-tit">원클릭 홍보물 만들기 <span class="more">단지 데이터 자동 채움</span></div>
         <div class="tools" style="grid-template-columns:repeat(4,1fr)"><button data-tool="report"><b>단지 리포트 (PDF)</b>시세·실거래·입지 6쪽</button><button data-tool="short"><b>60초 숏폼 대본</b>릴스·쇼츠용 세로 영상</button><button data-tool="blog"><b>블로그 글</b>"이번 주 헬리오시티 시세"</button><button data-tool="sms"><b>고객 문자</b>관심 고객 시세 변동 알림</button></div></div>
     </main></div>`;
   document.querySelectorAll('[data-tool]').forEach(b => b.onclick = () => openTool(b.dataset.tool, d));
@@ -957,7 +920,7 @@ function renderS6() {
     <div style="margin:36px 0 44px"><div class="sec-tit">신청 절차</div>
       <div class="steps"><div><b>1. 로그인</b>한경부동산 플러스 계정 그대로(신규 가입 없음)</div><div><b>2. 자격 확인</b>개설등록 확인 · 프로필 사진 이용 허락 · 단지파트너는 단지 반경 1km 안 사무소</div><div><b>3. 계약·결제</b>한경부동산 플러스 결제·환불 체계 · 계약 주체 한국경제</div><div><b>4. 노출 시작</b>전문 페이지 즉시 개설 · 단지파트너는 다음 날 0시부터</div></div>
       <div style="border-left:3px solid var(--blue);background:var(--bg3);padding:12px 16px;margin-top:16px;font-size:13.5px"><b>현장 제보·뉴스 PR</b> — 제보는 모든 파트너가 무료로 할 수 있고, 기사에 실을지·누구를 인용할지는 한국경제 편집국이 정합니다. 돈을 내고 기사 인용을 사는 상품은 없습니다.</div>
-      <div class="legal">단지파트너는 광고 상품이며 화면에 '광고'로 표시됩니다. 한경·리치고가 중개 품질을 보증하지 않으며, 허위 매물·부당 광고가 확인되면 계약이 해지됩니다. 운영: 한국경제(사업·계약) · 리치고(데이터·화이트라벨 ASP) · 모두리치(영업)</div></div>
+      <div class="legal">단지파트너는 광고 상품이며 화면에 '광고'로 표시됩니다. 한경은 중개 품질을 보증하지 않으며, 허위 매물·부당 광고가 확인되면 계약이 해지됩니다. 운영: 한국경제(사업·계약) · 리치고(데이터·화이트라벨 ASP) · 모두리치(영업)</div></div>
   </div>`;
 }
 
@@ -1021,8 +984,8 @@ function renderS7() {
           <p>송파구 가락동 대단지에서 추석 이후 매수 문의가 늘고 있다. 국토교통부 실거래가 공개시스템에 따르면 헬리오시티 32평형은 지난달 22일 30억5500만원에 거래됐다. KB부동산 시세(33평 29억2500만원)를 웃도는 가격이다. 이달 11일에는 33평 고층이 30억2000만원에 계약된 것으로 확인됐다(실거래 신고 전). 가락쌍용1차 24평형도 이달 6일 19억3500만원에, 래미안파크팰리스 26평형은 지난달 12일 22억9000만원에 손바뀜했다.</p>
           <p>현장에서는 문의가 늘었다는 목소리가 많다. 헬리오시티 상가에서 영업하는 송파헬리오OO공인중개사 김OO 대표는 "추석 이후 32평 매수 문의가 주 2~3건에서 5건 이상으로 늘었다"며 "30억원 아래 매물이 빠르게 빠지는 분위기"라고 말했다.</p>
           <p>가락OO부동산 윤OO 대표는 "리모델링 기대에 가락쌍용1차 24평 문의가 늘면서 집주인들이 호가를 1000만~2000만원 올렸다"고 전했다. 전세 시장은 조용한 편이다. 가락시장OO부동산 이OO 대표는 "33평 전세 매물이 13억원대 2~3개뿐이고 대부분 갱신 계약으로 돌아섰다"고 했다. KB 기준 헬리오시티 33평 전세가율은 ${helio.jr}%다.</p>
-          <figure style="border:1px solid var(--line);padding:14px 16px"><b style="font-size:14px">헬리오시티 33평 시세 추이</b>${lineChart([{data: helio.ms, color: '#0d79c7'}, {data: helio.js, color: '#999'}], MONTHS, 700, 190)}<figcaption>자료: 리치고 · KB부동산 · 국토교통부</figcaption></figure>
-          <p>리치고 분석에 따르면 헬리오시티 33평 시세는 2년 전보다 ${helio.chg2y}% 올랐지만 최근 1년은 보합(${pct(helio.chg1y)})이다.</p>
+          <figure style="border:1px solid var(--line);padding:14px 16px"><b style="font-size:14px">헬리오시티 33평 시세 추이</b>${lineChart([{data: helio.ms, color: '#0d79c7'}, {data: helio.js, color: '#999'}], MONTHS, 700, 190)}<figcaption>자료: KB부동산 · 국토교통부 실거래</figcaption></figure>
+          <p>시세 자료를 분석한 결과 헬리오시티 33평 시세는 2년 전보다 ${helio.chg2y}% 올랐지만 최근 1년은 보합(${pct(helio.chg1y)})이다.</p>
           <p style="font-size:15px;color:var(--text2)">○○○ 기자 xxx@hankyung.com</p>
         </div>
         <div class="legal">이 기사는 공인중개사들이 보낸 현장 제보를 바탕으로 기자가 취재·검수해 작성했습니다. 기사에 실을지, 누구를 인용할지는 한국경제 편집국이 판단하며 비용을 받지 않습니다. 거래 가격은 국토교통부 신고 또는 계약서로 확인된 것만 썼고, 신고 전 거래는 '신고 전'으로 표기했습니다. 신고 결과와 다르거나 계약이 해제되면 정정합니다.</div>
@@ -1192,7 +1155,7 @@ function renderS10() {
     <div class="crumb">집코노미 › AI 단지지도 › <b>H-AI 스코어</b></div>
     <div class="dtitle" style="position:relative"><i class="an" data-n="1" style="left:-12px;top:0"></i>
       <div><div class="ntag"><span class="b ai">H-AI 스코어 ${SC.version}</span><span class="c bl">${SC.scope}</span></div><h1>송파구 아파트 ${st.scored}개 단지 점수</h1>
-      <div class="meta">리치고 단지 데이터 · 리치고 시세 · 국토부 실거래 · KB 시세(${SC.kb_date}) 실측값으로 계산 · 가격 예측값 없음 · 광고 계약 여부 반영 안 함</div></div></div>
+      <div class="meta">단지 데이터 · 시세 · 국토부 실거래 · KB 시세(${SC.kb_date}) 실측값으로 계산 · 가격 예측값 없음 · 광고 계약 여부 반영 안 함</div></div></div>
     <div class="s3-body">
       <div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;position:relative" id="s10ctl"><i class="an" data-n="2" style="left:-12px;top:-6px"></i></div>
