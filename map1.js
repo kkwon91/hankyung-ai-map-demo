@@ -130,7 +130,8 @@ window.PMAP = (function () {
     return divColor(v, metric);
   }
   function style(r) {
-    const z = map ? map.getZoom() : 10, dim = z >= 14 ? .08 : layer === 'news' ? .28 : layer === 'high' ? .55 : .6;
+    const z = map ? map.getZoom() : 10, dim = z >= 12 ? .12 : layer === 'news' ? .28 : layer === 'high' ? .55 : .6; // 동 숫자가 보이는 단계에선 구 색을 옅게
+    if (z >= 14) return {opacity: 0, fillOpacity: 0, weight: 0}; // 단지가 보이는 단계에선 경계를 숨김
     const sel = view.k === 'region' && view.code === r.code;
     return {color: sel ? '#121212' : '#fff', weight: sel ? 2.4 : r.lv === 'sgg' ? 1.2 : .7, fillColor: fill(r), fillOpacity: dim, opacity: 1};
   }
@@ -146,7 +147,7 @@ window.PMAP = (function () {
   }
   function syncPolys() {
     const z = map.getZoom();
-    const wantEmd = z >= 12;
+    const wantEmd = false; // 동 경계는 그리지 않음(원본 자료가 거침)
     if (!map.hasLayer(gSgg)) gSgg.addTo(map);
     if (wantEmd && !map.hasLayer(gEmd)) gEmd.addTo(map);
     if (!wantEmd && map.hasLayer(gEmd)) map.removeLayer(gEmd);
@@ -241,7 +242,7 @@ window.PMAP = (function () {
     if (selLine) { map.removeLayer(selLine); selLine = null; }
     if (view.k !== 'region') return;
     const f = M.geo.sgg.find(x => x.properties.code === view.code) || M.geo.emd.find(x => x.properties.code === view.code);
-    if (f) selLine = L.geoJSON(f, {interactive: false, style: {color: '#121212', weight: 2.5, fill: false}}).addTo(map);
+    if (f && map.getZoom() < 14) selLine = L.geoJSON(f, {interactive: false, style: {color: '#121212', weight: 2.5, fill: false}}).addTo(map);
   }
   function go(v, reset) { if (reset) hist = []; else if (view.k !== 'home' || v.k !== 'home') hist.push(view); view = v; panel(); restyle(); draw(); outline(); }
   function back() { view = hist.pop() || {k: 'home'}; panel(); restyle(); draw(); outline(); }
@@ -410,7 +411,7 @@ window.PMAP = (function () {
   }
   function openRegion(code, fly, focus) {
     const r = R[code]; if (!r) return;
-    if (fly) { const ly = polys[code]; if (ly) map.fitBounds(ly.getBounds(), {paddingTopLeft: [PW(), 30], paddingBottomRight: [20, 20], maxZoom: 14}); }
+    if (fly) { const ly = polys[code]; if (ly) map.fitBounds(ly.getBounds(), {paddingTopLeft: [PW(), 30], paddingBottomRight: [20, 20], maxZoom: 13}); else if (r.c) map.setView(r.c, 14); }
     go({k: 'region', code, focus});
   }
   function openDanji(id) {
