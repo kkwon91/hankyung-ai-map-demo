@@ -258,10 +258,13 @@ window.PMAP = (function () {
   function scopeRegion() {
     const c = map.getCenter(), z = map.getZoom();
     if (z < 11) return null;
-    // 지도 가운데가 속한 구
-    let best = null, bd = 1e9;
-    Object.values(R).forEach(r => { if (r.lv === 'sgg' && r.c) { const d = (r.c[0] - c.lat) ** 2 + (r.c[1] - c.lng) ** 2; if (d < bd) { bd = d; best = r; } } });
-    return best;
+    // 지도 가운데가 실제로 들어 있는 구(경계 안 판정)
+    const inRing = (ring, x, y) => { let o = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, yi] = ring[i], [xj, yj] = ring[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) o = !o; } return o; };
+    for (const f of M.geo.sgg) {
+      const g = f.geometry, polys = g.type === 'MultiPolygon' ? g.coordinates : [g.coordinates];
+      if (polys.some(p => inRing(p[0], c.lng, c.lat) && !p.slice(1).some(h => inRing(h, c.lng, c.lat)))) return R[f.properties.code];
+    }
+    return null;
   }
   function kpis() {
     const s = R[SEOUL], sc = scopeRegion();
