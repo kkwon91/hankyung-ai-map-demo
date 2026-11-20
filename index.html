@@ -573,7 +573,7 @@ function pinHtml(d, mode, sel, scv = d.score) {
   return `<div class="pin ${sel ? 'sel' : ''}">${m ? face(m.name, 22, '').replace('class="face"', 'class="face mav"') : ''}${body}</div>`;
 }
 function makeMap(el, zoomPos = 'bottomright') {
-  const map = L.map(el, {zoomControl: false, scrollWheelZoom: false, zoomSnap: 1, zoomAnimation: false}).setView([37.505, 127.1], 13);
+  const map = L.map(el, {zoomControl: false, scrollWheelZoom: true, wheelDebounceTime: 60, wheelPxPerZoomLevel: 90, zoomSnap: 1, zoomAnimation: false}).setView([37.505, 127.1], 13);
   L.control.zoom({position: zoomPos}).addTo(map);
   addBase(map);
   return map;

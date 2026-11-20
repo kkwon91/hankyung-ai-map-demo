@@ -78,7 +78,7 @@ window.PMAP = (function () {
 
   function mount(container) {
     el = container; el.innerHTML = html();
-    map = L.map('pmMap', {zoomControl: false, scrollWheelZoom: false, zoomSnap: 1, zoomAnimation: false, minZoom: 9, maxZoom: 17, attributionControl: true, preferCanvas: false});
+    map = L.map('pmMap', {zoomControl: false, scrollWheelZoom: true, wheelDebounceTime: 60, wheelPxPerZoomLevel: 90, zoomSnap: 1, zoomAnimation: false, minZoom: 9, maxZoom: 17, attributionControl: true, preferCanvas: false});
     window.addBase(map, {gray: true, className: 'pm-tiles'});
     map.fitBounds([[37.36, 126.62], [37.72, 127.24]], {paddingTopLeft: [300, 40], paddingBottomRight: [10, 10]});
     gSgg = L.geoJSON({type: 'FeatureCollection', features: M.geo.sgg}, {style: f => style(R[f.properties.code]), onEachFeature: bindPoly});
@@ -127,7 +127,7 @@ window.PMAP = (function () {
   function bindPoly(f, ly) {
     const r = R[f.properties.code]; polys[r.code] = ly;
     ly.on('mouseover', () => { if (!(view.k === 'region' && view.code === r.code)) ly.setStyle({weight: 2, color: '#121212'}); tip(r, ly); });
-    ly.on('mouseout', () => { ly.setStyle(style(r)); map.closeTooltip(); });
+    ly.on('mouseout', () => { ly.setStyle(style(r)); ly.closeTooltip(); });
     ly.on('click', () => openRegion(r.code));
   }
   function tip(r, ly) {
