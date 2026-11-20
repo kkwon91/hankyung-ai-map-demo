@@ -67,7 +67,7 @@ window.DJP = (function () {
     if (tr.length) s.push(`최근 1년 같은 면적 실거래는 ${tr.length}건으로 가장 최근 거래는 ${+tr[0][0].slice(3, 5)}월 ${+tr[0][0].slice(6, 8)}일 ${eok(tr[0][3])}(${tr[0][2]}층)이다.`);
     if (t[4]) { const gap = (m * 100 / t[4][0] - 1) * 100; s.push(`2017년 이후 최고가는 ${t[4][1]}년 ${eok(t[4][0])}으로, 지금 시세는 그보다 ${Math.abs(gap).toFixed(0)}% ${gap >= 0 ? '높다' : '낮다'}.`); }
     if (j && m) s.push(`전세가율은 ${Math.round(j / m * 100)}%다.`);
-    return s.join(' ');
+    return s.join(' ').replace(/(\d)(%|억|만원|원|건|층|㎡)(?=[가-힣])/g, '$1$2⁠');
   }
 
   let cur = null, curType = null, miniMap = null;
@@ -99,6 +99,7 @@ window.DJP = (function () {
     const trT = t ? x.tr.filter(r => Math.abs(r[1] - t[0]) < 3) : x.tr;
     const nb = Object.entries(sh.d).filter(([k, y]) => y.code === x.code && k !== id && y.types.length).sort((a, b) => b[1].hh - a[1].hh).slice(0, 6);
     const rows = [[id, x], ...nb].map(([k, y]) => { const q = repType(y); return {k, y, q, m: q ? last(q[2]) : null, c: q ? chg(q[2], 12) : null, jr: q && last(q[3]) && last(q[2]) ? Math.round(last(q[3]) / last(q[2]) * 100) : null}; });
+    const cmpMax = Math.max(1, ...rows.map(o => o.m || 0));
     const busy = Object.entries(sh.d).filter(([, y]) => y.n1y).sort((a, b) => b[1].n1y - a[1].n1y).slice(0, 5);
     const crumbS = x.sd === '서울' ? '서울' : x.sd;
     const photo = demo && demo.photo;
@@ -117,18 +118,20 @@ window.DJP = (function () {
           ${photo ? `<figure class="hero" style="margin:0"><div class="img"><img class="ph" src="${photo}" alt=""></div><figcaption>${demo.photoCap || ''}</figcaption></figure>`
             : `<div class="dj-mini" id="djMini"></div><div class="note" style="margin-top:4px">지도의 가격은 단지별 전용 84㎡ 안팎 시세 · 누르면 그 단지 페이지로</div>`}
           <div class="ticker">
-            <div><div class="l">매매 시세${t ? ` ${t[0]}㎡` : ''}</div><div class="v">${m ? eokS(m * 100) : '–'}</div><div class="s note">${months[months.length - 1].replace('-', '.')} 기준</div></div>
+            <div><div class="l">매매 시세${t ? ` ${t[0]}㎡` : ''}</div><div class="v">${m ? eokS(m * 100) : '–'}</div><div class="s note">${months[months.length - 1].replace('-', '.')} 기준</div>${t ? DJC.spark(t[2].slice(-13)) : ''}</div>
             <div><div class="l">전세 시세</div><div class="v">${j ? eokS(j * 100) : '–'}</div><div class="s note">전세가율 ${m && j ? Math.round(j / m * 100) + '%' : '–'}</div></div>
             <div><div class="l">1년 변동</div><div class="v ${ud(c12)}">${pctS(c12)}</div><div class="s note">2년 ${pctS(c24)}</div></div>
             <div><div class="l">2017년 이후 최고가</div><div class="v">${t && t[4] ? eokS(t[4][0]) : '–'}</div><div class="s note">${t && t[4] ? `${t[4][1]}년 · 현재 ${(m * 100 / t[4][0] * 100).toFixed(0)}% 수준` : '거래 없음'}</div></div>
-            <div><div class="l">1년 실거래</div><div class="v">${x.n1y}건</div><div class="s note">국토부 신고 · 해제 제외</div></div>
+            <div><div class="l">1년 실거래</div><div class="v">${x.n1y}건</div><div class="s note">국토부 신고 · 해제 제외</div>${x.vm ? DJC.spark(x.vm) : ''}</div>
           </div>
           <div class="aisum" style="margin-top:22px"><div class="h">데이터 브리핑</div>${esc(brief(x, t))}<div class="src">시세·국토부 실거래 신고 자료로 자동 작성 · ${months[months.length - 1].replace('-', '.')} 기준</div></div>
 
-          <div class="s3-sec"><div class="sec-tit">시세 추이 <span class="sub"><b style="color:var(--blue)">매매</b> / <b style="color:#888">전세</b> · 최근 2년</span></div>
+          <div class="s3-sec"><div class="sec-tit">시세와 실거래 <span class="sub">${t ? `전용 ${t[0]}㎡ · ` : ''}최근 2년 시세 · 1년 실거래</span></div>
             ${types.length > 1 ? `<div class="dj-types">${types.map((q, i) => `<button data-ti="${i}" class="${i === curType ? 'on' : ''}">${q[0]}㎡<small>${pyeongOf(q[0])}평</small></button>`).join('')}</div>` : ''}
-            ${t ? chart(t, months) : '<div class="note" style="padding:30px 0">시세 자료가 아직 없습니다</div>'}
-            <div class="src">월별 시세 · 점선은 같은 면적 2017년 이후 최고 실거래가</div></div>
+            ${t ? '<div class="djc" id="djcPrice"></div>' : '<div class="note" style="padding:30px 0">시세 자료가 아직 없습니다</div>'}
+            <div class="src">선은 월별 시세, 점은 국토부 실거래(해제 제외)&nbsp;· 빨간 선은 같은 면적 2017년 이후 최고가&nbsp;· 그래프에 마우스를 올리면 달마다 값이 나옵니다</div></div>
+
+          ${x.vm && x.vm.some(Boolean) ? `<div class="s3-sec"><div class="sec-tit">월별 실거래 <span class="sub">모든 면적 · 최근 12개월 ${x.vm.reduce((a, b) => a + b, 0)}건</span></div><div class="djc" id="djcVol"></div><div class="src">계약일 기준 · 11월은 19일까지 신고분이고, 신고 기한이 30일이라 늘어날 수 있음</div></div>` : ''}
 
           <div class="s3-sec"><div class="sec-tit">실거래 <span class="sub">${t ? `전용 ${t[0]}㎡ · ` : ''}최근 1년 ${trT.length}건</span></div>
             ${trT.length ? `<table class="tbl"><tr><th>계약일</th><th>전용</th><th>층</th><th class="r">거래가</th><th></th></tr>${trT.slice(0, 15).map(r => `<tr><td class="num">${r[0]}</td><td>${r[1]}㎡</td><td>${r[2]}층</td><td class="r num"><b class="${r[6] ? 'up' : ''}">${eok(r[3])}</b></td><td class="note">${r[6] ? '<span class="dj-hi">최고가</span>' : ''}${r[5] ? '직거래' : ''}</td></tr>`).join('')}</table>`
@@ -136,8 +139,8 @@ window.DJP = (function () {
             <div class="src">국토교통부 실거래가 공개시스템 · 해제 신고 제외 · '최고가'는 2017년 이후 같은 면적 최고가 이상</div></div>
 
           <div class="s3-sec"><div class="sec-tit">${esc(x.emd)} 단지 비교 <span class="sub">전용 84㎡ 안팎 · 세대수 큰 순</span></div>
-            <table class="tbl"><tr><th>단지</th><th class="r">세대·입주</th><th class="r">매매 시세</th><th class="r">1년</th><th class="r">전세가율</th></tr>
-            ${rows.map(o => `<tr class="${o.k === id ? 'me' : 'go'}" ${o.k === id ? '' : `data-go="${o.k}"`}><td><b>${esc(o.y.n)}</b>${o.q ? `<div class="note">${o.q[0]}㎡</div>` : ''}</td><td class="r note num">${o.y.hh.toLocaleString()} · ${o.y.cd ? o.y.cd.slice(0, 4) : ''}</td><td class="r num">${o.m ? eokS(o.m * 100) : '–'}</td><td class="r num ${ud(o.c)}">${pctS(o.c)}</td><td class="r num">${o.jr ? o.jr + '%' : '–'}</td></tr>`).join('')}</table></div>
+            <table class="tbl dj-cmp"><tr><th>단지</th><th class="r c-hh">세대·입주</th><th class="r">매매 시세</th><th class="r">1년</th><th class="r">전세가율</th></tr>
+            ${rows.map(o => `<tr class="${o.k === id ? 'me' : 'go'}" ${o.k === id ? '' : `data-go="${o.k}"`}><td><b>${esc(o.y.n)}</b>${o.q ? `<div class="note">${o.q[0]}㎡</div>` : ''}</td><td class="r note num c-hh">${o.y.hh.toLocaleString()} · ${o.y.cd ? o.y.cd.slice(0, 4) : ''}</td><td class="r num"><span class="djc-cell">${o.m ? `<i style="width:${Math.round(o.m / cmpMax * 64)}px"></i>` : ''}${o.m ? eokS(o.m * 100) : '–'}</span></td><td class="r num ${ud(o.c)}">${pctS(o.c)}</td><td class="r num">${o.jr ? o.jr + '%' : '–'}</td></tr>`).join('')}</table></div>
 
           <div class="s3-sec"><div class="sec-tit">한경 뉴스 <span class="sub">${arts.length ? `'${esc(key)}'가 나온 기사` : `${esc(x.emd)} 기사`}</span></div>
             ${[...arts, ...artsNear].length ? [...arts, ...artsNear].map(a => `<a class="nitem" href="${a[3]}" target="_blank" rel="noopener"><div style="flex:1;min-width:0"><div class="t">${esc(a[1])}</div><div class="date">${a[8]}</div></div><div class="thumb"><img class="ph" src="${a[2]}" alt="" loading="lazy"></div></a>`).join('')
@@ -174,6 +177,8 @@ window.DJP = (function () {
     const favT = () => { const on = HKS.toggleFav(id, x.n); render(el); toast(on ? '관심단지에 담았습니다' : '관심단지에서 뺐습니다'); };
     ['#djFav', '#djFav2'].forEach(s => { const b = $(s, el); if (b) b.onclick = favT; });
     if (!photo) setTimeout(() => mini(x, sh), 30);
+    if (t) DJC.price(document.getElementById('djcPrice'), t, months, trT);
+    if (x.vm && document.getElementById('djcVol')) DJC.volume(document.getElementById('djcVol'), x.vm, sh.vmonths || []);
   }
 
   function mini(x, sh) {

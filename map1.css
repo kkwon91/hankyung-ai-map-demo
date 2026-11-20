@@ -199,3 +199,43 @@
 .newdot{font-size:9.5px;font-weight:700;color:#fff;background:var(--blue);padding:0 4px;vertical-align:1px}
 @media (max-width:900px){.dj-mini{height:240px}.ticker{grid-template-columns:1fr 1fr}}
 @media (max-width:600px){.hk-head .top .r span:not(:last-child){display:none}.hk-head .logo-zip{margin-top:0}.hk-head .logo-zip img{width:118px;height:39px}.s3-sticky .btn .ad{display:none}}
+
+/* ── 단지 페이지 차트(dataviz 기준) ── */
+.djc{position:relative;margin-top:4px}
+.djc-svg{display:block;overflow:visible}
+.djc-legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:#585858;margin:2px 0 8px}
+.djc-legend span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.djc-legend b{color:#121212;font-weight:700}
+.djc-legend i.ln{width:16px;height:2px;border-radius:1px;display:inline-block}
+.djc-legend i.dt{width:8px;height:8px;border-radius:50%;display:inline-block;box-shadow:0 0 0 2px #fff}
+.djc-tip{position:absolute;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .12s;background:#fff;border:1px solid #d9dde5;box-shadow:0 6px 18px rgba(0,0,0,.12);padding:8px 10px;font-size:12.5px;min-width:150px;z-index:5;white-space:nowrap}
+.djc-tip .h{font-size:11.5px;color:#888;margin-bottom:4px}
+.djc-tip .h em{font-style:normal;color:#b50000;font-weight:700}
+.djc-tip .r{display:flex;align-items:center;gap:7px;line-height:1.6}
+.djc-tip .r i{width:12px;height:2px;border-radius:1px;flex:none}
+.djc-tip .r i.dot{width:8px;height:8px;border-radius:50%}
+.djc-tip .r b{font-size:14px;color:#121212;min-width:52px}
+.djc-tip .r span{color:#585858}
+.djc-tip .s{margin-top:3px;padding-top:4px;border-top:1px solid #eee;color:#585858;font-size:11.5px}
+.djc-spark{display:block;margin-top:6px}
+.djc-cell{display:inline-flex;align-items:center;gap:6px;justify-content:flex-end}
+.djc-cell i{display:inline-block;height:6px;border-radius:0 3px 3px 0;background:#9ec3e4}
+.tbl tr.me .djc-cell i{background:#0d79c7}
+.djc-bar{transition:opacity .15s}
+.djc .djc-ln{stroke-dasharray:1;stroke-dashoffset:1;animation:djdraw .9s cubic-bezier(.2,.7,.2,1) forwards}
+.djc .djc-dots circle{opacity:0;animation:djin .4s ease-out .55s forwards}
+.djc .djc-fade{opacity:0;animation:djfade .6s ease-out .3s forwards}
+@keyframes djdraw{to{stroke-dashoffset:0}}
+@keyframes djin{to{opacity:1}}
+@keyframes djfade{to{opacity:.08}}
+@media (prefers-reduced-motion:reduce){.djc .djc-ln{animation:none;stroke-dashoffset:0}.djc .djc-dots circle,.djc .djc-fade{animation:none;opacity:1}.djc .djc-fade{opacity:.08}}
+/* 한국어 줄바꿈: 낱말 단위로 끊고, 칸보다 긴 낱말(긴 단지 이름 등)만 꺾는다 */
+body{word-break:keep-all;overflow-wrap:anywhere}
+.num,.djc-svg text{word-break:normal}
+/* 줄 나누기 다듬기: 마지막 줄 외톨이 낱말 막기 · 제목은 줄 길이 고르게 · 숫자 칸은 한 줄 */
+.pm-nrow .t,.nitem .t,.s1-pick .it,.lead-item .t,.lead-item .s,.aisum,.pm-brief,.src,.pm-sub,.note,.dj-app,.pm-open,.cap p{text-wrap:pretty}
+h1,h2,h3,.sec-tit,.cap h2,.pm-rhead h3,.hk-form h3{text-wrap:balance}
+.tbl td.r,.tbl th.r,.tbl td.num,.djc-cell,.pm-legend b,.pm-legend em,.pm-legend span{white-space:nowrap}
+@media (max-width:600px){.dj-cmp .c-hh{display:none}.djc-cell i{display:none}.dj-cmp td b{word-break:keep-all;overflow-wrap:normal}}
+.saas .tbl td.note{white-space:nowrap}
+@media (max-width:600px){body .deck{position:static}}

@@ -284,13 +284,13 @@ window.PMAP = (function () {
     if (layer === 'trade') {
       const rs = visibleRegions().sort((a, b) => (b.t30 || 0) - (a.t30 || 0));
       const ds = DJ.filter(d => inView({la: d.la, ln: d.ln}) && d.nt).sort((a, b) => b.nt - a.nt).slice(0, 6);
-      return `<div class="pm-h">최근 30일 실거래</div><div class="pm-sub">${W0}~${W1} 계약 · 해제 거래 제외 · 신고 기한(30일)이 남아 늘어날 수 있음</div>
+      return `<div class="pm-h">최근 30일 실거래</div><div class="pm-sub">${W0}~${W1} 계약 · 해제 거래 제외 · 신고 기한이 30일이라 늘어날 수 있음</div>
         <div class="pm-lbl">거래 많은 단지</div>` + ds.map(d => `<a class="pm-drow" data-dj="${d.id}"><span class="nm">${esc(d.n)}<small>${d.emd} · ${d.hh.toLocaleString()}세대</small></span><span class="v"><b class="num">${d.nt}건</b><i class="num">최근 ${eokS(d.t[0][3])}</i></span></a>`).join('') +
         `<div class="pm-lbl">지역별</div>` + rs.slice(0, 30).map(r => `<a class="pm-rrow" data-reg="${r.code}"><span class="nm">${esc(r.n)}<small>${r.lv === 'emd' ? r.sgg : r.sd}</small></span>${bars((r.v || []).slice(-13, -1), 54, 20)}<span class="v"><b class="num">${(r.t30 || 0).toLocaleString()}건</b><i class="num">${r.v ? '월평균 ' + Math.round(r.v.slice(-13, -1).reduce((a, b) => a + b, 0) / 12) : ''}</i></span></a>`).join('') + foot();
     }
     const hs = HIGHS.filter(h => inView({la: h.d.la, ln: h.d.ln})).sort((a, b) => b.t[3] - a.t[3]);
     const tv = DJ.filter(d => inView({la: d.la, ln: d.ln})).reduce((a, d) => a + d.nt, 0);
-    return `<div class="pm-h"><span>신고가 <b class="up">${hs.length.toLocaleString()}</b>건</span><span class="pm-hr">실거래 ${tv.toLocaleString()}건 중 ${tv ? Math.round(hs.length / tv * 100) : 0}%</span></div><div class="pm-sub">${W0}~${W1} 계약 중 같은 평형 직전 최고가(2017년 이후)를 넘은 거래 · 가격 높은 순</div>` +
+    return `<div class="pm-h"><span>신고가 <b class="up">${hs.length.toLocaleString()}</b>건</span><span class="pm-hr">실거래 ${tv.toLocaleString()}건 중 ${tv ? Math.round(hs.length / tv * 100) : 0}%</span></div><div class="pm-sub">${W0}~${W1} 계약 중 같은 평형의 2017년 이후 최고가를 넘은 거래 · 가격 높은 순</div>` +
       hs.slice(0, 40).map(({d, t}) => `<a class="pm-drow" data-dj="${d.id}"><span class="nm">${esc(d.n)}<small>${d.sgg} ${d.emd} · 전용 ${t[1]}㎡ · ${t[2]}층 · ${t[0]}</small></span><span class="v"><b class="num up">${eokS(t[3])}</b><i class="num">직전 ${eokS(t[5])}</i></span></a>`).join('') + foot();
   }
   const foot = () => `<a class="pm-foot" href="#s9">우리 단지 전문 중개사 찾기 <span>›</span></a>`;

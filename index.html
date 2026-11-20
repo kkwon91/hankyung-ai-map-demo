@@ -22,6 +22,7 @@
 <script src="map.js"></script>
 <script src="map1.js"></script>
 <script src="store.js"></script>
+<script src="djchart.js"></script>
 <script src="danji.js"></script>
 <link rel="stylesheet" href="map1.css">
 <style>
@@ -843,7 +844,7 @@ function renderS5() {
   const seo = [['네이버 검색', "'헬리오시티 부동산' 3위 · '송파 공인중개사' 8위", '노출 9,820'], ['구글 검색', "'helio city 중개' 2위", '노출 3,140'], ['AI 검색 인용', 'ChatGPT·퍼플렉시티·네이버 AI 브리핑', '인용 27회'], ['전문 페이지 방문', '검색 유입 61% · 기사 유입 22%', '방문 2,418'], ['상담 신청', '전문 페이지 14 · 단지 페이지 11 · 매물정보 6', '31건']];
   $('#s5frame').innerHTML = `<div class="saas">
     <nav><div class="b"><div style="font-size:17px;font-weight:900;color:#fff;letter-spacing:-.6px">한경부동산 <span style="color:#7cc0f5">플러스</span></div><div style="font-size:12px;color:#9fb0d6;font-weight:500">파트너 관리 · 집코노미 연동</div></div>
-      <div style="display:flex;gap:10px;align-items:center;padding:4px 8px 16px">${face(m.name, 40, 'border:2px solid #fff')}<div style="font-size:12.5px;color:#fff"><b>${m.name} 대표</b><div style="color:#9fb0d6">${m.office}</div></div></div>
+      <div style="display:flex;gap:10px;align-items:center;padding:4px 8px 16px">${face(m.name, 40, 'border:2px solid #fff')}<div style="font-size:12.5px;color:#fff"><b>${m.name} 대표</b><div style="color:#9fb0d6">${m.office.replace('공인중개사', '<wbr>공인중개사')}</div></div></div>
       <a class="on">대시보드</a><a>매물 관리 <span class="note" style="color:#9fb0d6">기존 매물 연동</span></a><a>전문 페이지 관리</a><a>현장 제보 <span style="background:var(--red);color:#fff;font-size:9.5px;padding:0 4px;font-weight:700">NEW</span></a><a>상담 관리</a><a>검색·성과 리포트</a><a>홍보물 제작</a><a>상품 계약·결제·환불</a><a>회원 정보</a></nav>
     <main>
       <div class="plusnote" style="position:relative"><i class="an" data-n="1" style="left:-10px;top:-10px"></i>한경부동산 플러스 회원·등록 매물을 그대로 씁니다 — <b>새로 가입하거나 매물을 다시 올릴 필요가 없어요.</b> 상품 계약·결제·환불도 여기서 한 번에.</div>
